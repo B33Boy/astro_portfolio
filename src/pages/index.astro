@@ -32,18 +32,11 @@ const { Content: About } = await render(about!);
 >
 	<div class="layout-grid-left" slot="left">
 		<Card class="flex-col-card">
-			<ImageGlow quality={100} width={80} height={80} src={ProfilePicture} alt="Louis looking out of a window" loading='eager' />
-			<h2>{name}</h2>
-			<ul class="overview-list">
-				{quickInfo.map((info) => (
-					<li>
-						<Icon type={info.data.icon.type} name={info.data.icon.name as any} width={24} height={24} class='glow-icon' />
-						<span>{info.data.text}</span>
-					</li>
-				))}
-			</ul>
+			<div class="pfp-centre">
+			<ImageGlow quality={100} width={500} height={376} src={ProfilePicture} alt="Louis looking out of a window" loading='eager' />
+			</div>
 		</Card>
-		<Card>
+		<!-- <Card>
 			<h3 class="no-mt">Socials</h3>
 			<ul class="overview-list">
 				{socials.map((item) => (
@@ -55,22 +48,32 @@ const { Content: About } = await render(about!);
 					</li>
 				))}
 			</ul>
-		</Card>
-	</div>
-	<div class="layout-grid-right" slot="right">
+		</Card> -->
 		<Card>
 			<div class="header-container">
 				<Icon type='lucide' name="user" width={24} height={24} class='glow-icon' />
-				<h2>About me</h2>
+				<h1>About Me</h1>
 			</div>
 			<div class="prose">
 				<About />
 			</div>
 		</Card>
+		<Card class="flex-col-card">
+			<div>
+				<h1>Skills</h1>
+				<div class="prose">
+					
+				</div>
+			</div>
+		</Card>
+	</div>
+	
+	<div class="layout-grid-right" slot="right">
+
 		<Card>
 			<div class="header-container">
 				<Icon type='lucide' name="rss" width={24} height={24} class='glow-icon' />
-				<h2>Latest Posts</h2>
+				<h1>Latest Posts</h1d>
 			</div>
 			<div class="content-container">
 				{posts.sort((a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime()).slice(0, 2).map((post) => (
@@ -87,7 +90,7 @@ const { Content: About } = await render(about!);
 		<Card>
 			<div class="header-container">
 				<Icon type='lucide' name="folder-git" width={24} height={24} class='glow-icon' />
-				<h2>Latest Projects</h2>
+				<h1>Latest Projects</h1>
 			</div>
 			<div class="content-container">
 				{projects.sort((a, b) => b.data.date.getTime() - a.data.date.getTime()).slice(0, 2).map((project) => (
@@ -104,7 +107,7 @@ const { Content: About } = await render(about!);
 		<Card>
 			<div class="header-container">
 				<Icon type='lucide' name="briefcase-business" width={24} height={24} class='glow-icon' />
-				<h2>Work Experience</h2>
+				<h1>Work Experience</h1>
 			</div>
 			<div class="work-experience-container">
 				{workExperience.reverse().map((entry) => (
@@ -118,4 +121,6 @@ const { Content: About } = await render(about!);
 			</div>
 		</Card>
 	</div>
+
+</div>
 </Layout>

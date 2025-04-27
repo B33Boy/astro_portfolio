@@ -15,6 +15,15 @@ const tags = posts.flatMap((post) => post.data.tags.map((tag) => tag.id));
   description={openGraph.blog.description}
 	pagefindIgnore
 >
+<div class="layout-grid-left" slot="left">
+<Card class="flex-col-card">
+  <h1>Bits & Giggles</h1>
+  <p>Welcome to Bits & Giggles, where I share my late-night technical rambles and try to make sense of whatever I'm googling at 2 AM. 
+    If you're here to see me figure things out (or fail spectacularly), you're in the right place.
+  </p>
+</Card>
+</div>
+
   <div class="layout-grid-left" slot="left">
     <Card class="flex-col-card">
       <h2 class="no-mt">Filter</h2>

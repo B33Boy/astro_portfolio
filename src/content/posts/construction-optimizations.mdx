@@ -1,0 +1,110 @@
+---
+title: "construction optimizations"
+description: ""
+image: "../assets/banner.png"
+createdAt: 04-10-2025
+draft: false
+tags:
+  - cpp
+---
+
+Let's start with a naive class:
+
+```cpp
+class Banana {
+public:
+    Banana(std::string s)
+    {
+	    s_ = s;
+    }
+private:
+    std::string s_;
+};
+```
+
+When instantiating a Banana like so:
+
+```cpp
+auto b = Banana("Bob");
+```
+
+When calling `Banana("Bob")`, you are making a copy inside the parameter `s` of the class
+Before the constructor executes, `s_` is default constructed as an empty string.
+The copy assignment operator (`s_ = s`) is called resulting in another copy.  
+**We have 2 copies + 1 default construction.**
+
+### Optimization 1: Use an initializer list
+
+```cpp
+class Banana {
+public:
+    Banana(std::string s) : s_(s) {}
+private:
+    std::string s_;
+};
+```
+
+Now we directly initialize `s_` with `s`, which avoids the default construction of `s_`.
+However, we are still using the copy constructor when initializing `s_`.
+Also note that, we are also still creating a copy inside the parameter `s`.
+We now have **2 copies**.
+
+### Optimization 2: Use `std::move` to avoid unnecessary copies
+
+This works for our use-case because we construct banana with an **rvalue**, hence allowing the string` s_` to be created without any copies, but rather with a move which is a lot less computationally expensive.
+
+```cpp
+class Banana {
+public:
+    Banana(std::string s) : s_(std::move(s)) {}
+private:
+    std::string s_;
+};
+```
+
+**We now have 1 copy and 1 move.**
+
+#### What happens the Banana is constructed with an lvalue?
+
+If we construct `Banana` with an lvalue, then we have undefined behaviour for the variable `name`.
+
+```cpp
+std::string name{"Bob"};
+auto b = Banana(name);
+```
+
+### Optimization 3: Use `std::forward` to handle both rvalues and lvalues
+
+This method is a templated approach that takes in a universal reference consisting of either an rvalue or an lvalue, and handles construction accordingly.
+
+```cpp
+class Banana {
+public:
+    template <typename T>
+    explicit Banana(T&& s) : s_(std::forward<T>(s)) {}
+private:
+    std::string s_;
+};
+
+```
+
+The `std::forward` automatically calls the correct constructor given the type of input:
+
+- If `s` is an rvalue, the move constructor is called.
+- If `s` is an lvalue, the copy constructor is called. The copy constructor is used here because we do not want to leave the original lvalue in an undefined state.
+
+Example usage:
+
+```cpp
+// Calls copy constructor, so we can still use name afterwards
+std::string name{"Bob"};
+auto b1 = Banana(name);
+
+// Directly transfers ownership of "Bob" to the Banana object
+auto b2 = Banana("Bob");
+```
+
+**If `s` is an rvalue, we have `1 move` and no copies.**
+**If `s` is an lvalue, we have `1 copy`.**
+
+Note: `explicit` just means that the compiler will fail if you don't pass in the exact type specified in the params. In other words, it prevents implicit conversions such as `char const*` to a `std::string`.

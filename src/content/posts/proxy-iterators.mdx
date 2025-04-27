@@ -1,0 +1,34 @@
+---
+title: "proxy-iterators and auto&&"
+description: ""
+image: "../assets/Porco Rosso - 008.jpg"
+createdAt: 03-04-2025
+draft: false
+tags:
+  - cpp
+---
+
+I regularly use range-based for loops (e.g. `auto& e : elements`) for direct access to each element in a container. However I recently came across the following issue:
+
+```cpp
+std::vector<bool> vec{true, false, true, true};
+for (auto& v : vec)
+{
+	// Modify v below
+	v = !v;
+	std::cout << v << " ";
+}
+// error: cannot bind non-const lvalue reference of type ‘std::_Bit_reference&’ to an rvalue of type ‘std::_Bit_iterator::reference’
+
+```
+
+It turns out that `std::vector<bool>` is a specialized template that packs boolean values into bits rather than storing each as a separate `bool`. Because individual bits cannot be referenced directly, `std::vector<bool>` provides a proxy type called `std::vector<bool>::reference` instead of a real `bool&`. `auto&` here expects a real reference, which is not provided. The workaround for this is to use the universal reference `auto&&` to bind correctly to the proxy reference :
+
+```c++
+for (auto&& v : vec)
+{
+	// Modify v below
+	v = !v;
+	std::cout << v << " ";
+}
+```

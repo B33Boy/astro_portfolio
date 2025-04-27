@@ -1,0 +1,20 @@
+---
+title: Redis Clone
+date: 01-10-2025
+description: A low-latency Redis clone built using socket programming and IO multiplexing
+image: ../assets/banner.png
+info:
+  - text: GitHub
+    link: https://github.com/B33Boy/BYOR
+    icon:
+      type: lucide
+      name: github
+---
+
+The project is done in increments:
+
+- `01_basic_server_client` - basic tcp server & client
+- `02_protocol_parsing` - echo server with a length-prefixed protocol
+- `03_event_loop` - event-based concurrency leveraging epoll
+- `04_key_value_server` - high speed server with get/set/del commands implemented
+- `05_key_value_server_optimized`- server optimized for low latency and high throughput

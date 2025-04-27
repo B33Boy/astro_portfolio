@@ -1,0 +1,122 @@
+---
+title: "CppCon Notes - The Most Important Optimizations to Apply in Your C++ Programs"
+description: ""
+image: "../assets/Tales From Earthsea - 005.jpg"
+createdAt: 04-18-2025
+draft: false
+tags:
+  - cpp
+---
+
+# Performance Goals
+
+- We want to avoid unnecessary work, and unnecessary allocations
+- Use all computing power
+- Avoid waits & stalls
+
+# Build Pipeline Modifications
+
+## 1. Enable compiler optimizations
+
+- `-O2` or `-O3` for optimizing speed
+- `-Os` for optimizing size
+
+The catch: longer compile-times
+
+## 2. Set target architecture
+
+- `-march=native -mtune-native` - for `x86`
+- `-mcpu=native` for `ARM`
+
+## 3. Fast Math
+
+`-ffast-math`
+
+Note: there exists `-Ofast` flag which is `-O3` + `-ffast-math` + more aggressive optimizations
+The catch: less precise results
+
+## 4. Disable Exceptions & RTTI (Run-Time Type Info)
+
+RTTI is what allows the program to deduce types during runtime (i.e. think of base class pointers pointing to derived objects)
+
+`-fno-exceptions` - disable exceptions
+`-fno-rtti` - disable RTTI
+
+The catch: breaks code using exceptions, limited performance gains
+
+## 5. Link Time Optimization
+
+C++ Build process:
+`.cpp` **files** --(pre-process)--> **expanded src code** --(compile)-->
+`.s` **assembler file** --(assembler)--> `.o` **object file** --(linker)-->**executable**
+
+`-flto` - Optimize across translation units at link-time so we can do things like:
+
+- Inline functions across files
+- Eliminate unused functions/variables
+- Merge identical functions/constants
+
+## 6. Use Unity Builds
+
+Normally in large C++ projects, each `.cpp` file is compiled separately into an object file, if each one includes the same headers, they are parsed repeatedly, compilation time grows due to this.
+
+Unity builds is a technique where multiple C++ files are combined into a single translation unit before being compiled. This can reduce build times and enable more aggressive compiler optimizations.
+
+`set_target_properties(my_target PROPERTIES UNITY_BUILD ON)` - in CMakeLists.txt or just use the flag `-DCMAKE_UNITY_BUILD=ON`
+
+If you don't want to use cmake, you can create a single cpp file like so:
+
+```cpp
+// unity.cpp
+
+#include "a.cpp"
+#include "b.cpp"
+#include "c.cpp"
+```
+
+Then run `g++ -O2 -o unity.o -c unity.cpp`
+
+## 7. Link Statically
+
+**Static linking** - produces one single executable containing everything you need to run the program. This method is more portable and has a faster startup time as you don't have the overhead of loading external libraries.
+
+**Dynamic linking** - produces a smaller executable that then has libraries _loaded_ in at run-time. As far as I'm aware, the only benefit you get is that you can load external libraries (e.g. think like plugins in an app) without fully compiling the code again.
+
+## 8. Profile Guided Optimization
+
+During building, the optimizers need to make heuristics based guesses such as what branch of code (in a conditional statement) gets executed many times. But if we already profiled our code, then we don't need to make guesses, and instead feed real data.
+
+`-fprofile-generate` - compile program with profile flags and then run the program
+`-fprofile-use` - recompile with this data
+
+## 9. Try Different Compilers
+
+clang, gcc, mscv, etc
+
+## 10. Try Different Standard Library Implementations
+
+## 11. Keep Your Tools Updated
+
+## 12. Preload With Replacement Library
+
+You can override standard library functions by setting an env var:
+
+Linux - `env LD_PRELOAD=/user/lib/libSUPERmalloc.so ./program`
+
+## 13. Use Binary Post Processing Tools
+
+Similar to Profile Guided Optimization in that you optimize an already-built application.
+LLVM BOLT is used.
+
+---
+
+# C++ Code Optimizations
+
+## 14. Constexpr everything
+
+`constexpr` - can be evaluated at compile time
+`consteval` - must be evaluated at compile time
+
+You can even do ` if constexpr (compile_time_condition) {...}`
+
+---

@@ -10,7 +10,7 @@ import { spectreDark } from './src/ec-theme';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://spectre.louisescher.dev',
+  site: 'https://abhipatel.netlify.app/',
   output: 'static',
   integrations: [
     expressiveCode({
@@ -19,31 +19,31 @@ export default defineConfig({
     mdx(),
     sitemap(),
     spectre({
-      name: 'Spectre',
+      name: 'Abhi Patel',
       openGraph: {
         home: {
-          title: 'Spectre',
-          description: 'A minimalistic theme for Astro.'
+          title: 'Abhi Patel',
+          description: 'Portfolio Site + Blog'
         },
         blog: {
-          title: 'Blog',
-          description: 'News and guides for Spectre.'
+          title: 'Bits & Giggles',
+          description: 'Blog where I write about stuff'
         },
         projects: {
           title: 'Projects'
         }
       },
-      giscus: {
-        repository: 'louisescher/spectre',
-        repositoryId: 'R_kgDONjm3ig',
-        category: 'General',
-        categoryId: 'DIC_kwDONjm3is4ClmBF',
-        mapping: 'pathname',
-        strict: true,
-        reactionsEnabled: true,
-        emitMetadata: false,
-        lang: 'en',
-      }
+      // giscus: {
+      //   repository: 'louisescher/spectre',
+      //   repositoryId: 'R_kgDONjm3ig',
+      //   category: 'General',
+      //   categoryId: 'DIC_kwDONjm3is4ClmBF',
+      //   mapping: 'pathname',
+      //   strict: true,
+      //   reactionsEnabled: true,
+      //   emitMetadata: false,
+      //   lang: 'en',
+      // }
     })
   ],
   adapter: node({

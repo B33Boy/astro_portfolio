@@ -5,7 +5,25 @@
       "type": "lucide",
       "name": "github"
     },
-    "text": "GitHub",
-    "link": "https://github.com/louisescher/spectre"
+    "text": "",
+    "link": "https://github.com/B33Boy"
+  },
+  {
+    "id": 2,
+    "icon": {
+      "type": "lucide",
+      "name": "linkedin"
+    },
+    "text": "",
+    "link": "https://www.linkedin.com/in/abhi-patel-0/"
+  },
+  {
+    "id": 3,
+    "icon": {
+      "type": "lucide",
+      "name": "code"
+    },
+    "text": "",
+    "link": "https://www.linkedin.com/in/abhi-patel-0/"
   }
 ]

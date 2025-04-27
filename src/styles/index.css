@@ -87,3 +87,9 @@
   gap: .75rem;
   align-items: center;
 }
+
+.pfp-centre {
+  display: flex;
+  justify-content: center; /* Centers horizontally */
+  align-items: center;     /* Centers vertically */
+}

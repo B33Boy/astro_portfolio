@@ -3,17 +3,27 @@
     "id": 1,
     "icon": {
       "type": "lucide",
-      "name": "cake"
+      "name": "github"
     },
-    "text": "1 year old"
+    "text": "",
+    "link": "https://github.com/B33Boy"
   },
   {
     "id": 2,
     "icon": {
       "type": "lucide",
-      "name": "earth"
+      "name": "linkedin"
     },
-    "type": "lucide",
-    "text": "Made in Germany"
+    "text": "",
+    "link": "https://www.linkedin.com/in/abhi-patel-0/"
+  },
+  {
+    "id": 3,
+    "icon": {
+      "type": "lucide",
+      "name": "code"
+    },
+    "text": "",
+    "link": "https://www.linkedin.com/in/abhi-patel-0/"
   }
 ]

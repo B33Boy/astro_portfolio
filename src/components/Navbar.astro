@@ -16,7 +16,7 @@ const path = Astro.url.pathname;
     </li>
     <li class="nav-separator">/</li>
     <li>
-      <input id="search" type="text" placeholder="Search (Ctrl+K)" />
+      <input id="search" type="text" placeholder="Search" />
       <div id="search-results"></div>
     </li>
   </ul>
@@ -76,7 +76,7 @@ const path = Astro.url.pathname;
   });
 
   searchElement?.addEventListener('blur', () => {
-    searchElement.placeholder = 'Search (Ctrl+K)';
+    searchElement.placeholder = 'Search';
   });
 
   searchElement?.addEventListener('blur', () => {
@@ -137,7 +137,7 @@ const path = Astro.url.pathname;
     if (window.matchMedia('(max-width: 640px)').matches) {
       searchElement.placeholder = 'Search';
     } else {
-      searchElement.placeholder = 'Search (Ctrl+K)';
+      searchElement.placeholder = 'Search';
     }
   }
 

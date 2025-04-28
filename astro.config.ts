@@ -1,11 +1,11 @@
 import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify';
 
 import expressiveCode from 'astro-expressive-code';
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import spectre from './package/src';
 
-import node from '@astrojs/node';
 import { spectreDark } from './src/ec-theme';
 
 // https://astro.build/config
@@ -46,7 +46,5 @@ export default defineConfig({
       // }
     })
   ],
-  adapter: node({
-    mode: 'standalone'
-  })
+  adapter: netlify(),
 });

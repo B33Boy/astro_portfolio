@@ -19,13 +19,12 @@ const projects = await getCollection("projects");
     <Card class="flex-col-card">
       <h2 class="no-mt">Stats</h2>
 		<div class="stats-centre">
-			<Image quality={100}
-				src="https://wakatime.com/share/@b33boy/1e8b9f69-8305-44c2-8f00-154e8972f912.png" 
-				alt="Wakatime languages used" 
-				width="400" 
-				height="300"
-				loading='eager'>
-			</Image>
+			<img 
+			src="https://wakatime.com/share/@b33boy/1e8b9f69-8305-44c2-8f00-154e8972f912.png" 
+				width="500" 
+				height="400"
+			/>
+
 		</div>
 		<div class="stat">
 			<h3 class="text-glow">{projects.length} Project{projects.length > 1 ? 's' : ''} </h3>

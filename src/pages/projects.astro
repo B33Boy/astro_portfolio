@@ -1,15 +1,14 @@
 ---
-import '../styles/article-list.css';
+import "../styles/article-list.css";
 
 import { getCollection } from "astro:content";
-// import { Image } from 'astro:assets';
-import ImageGlow from '../components/ImageGlow.astro';
+import Image from "astro/components/Image.astro";
 import Card from "../components/Card.astro";
 import Icon from "../components/Icon.astro";
 import Layout from "../layouts/Layout.astro";
-import { openGraph } from 'spectre:globals';
+import { openGraph } from "spectre:globals";
 
-const projects = await getCollection('projects');
+const projects = await getCollection("projects");
 ---
 <Layout
 	title={openGraph.projects.title || "Projects"}
@@ -19,19 +18,18 @@ const projects = await getCollection('projects');
   <div class="layout-grid-left" slot="left">
     <Card class="flex-col-card">
       <h2 class="no-mt">Stats</h2>
-			<div class="stats-centre">
-				<ImageGlow quality={100}
-					src="https://wakatime.com/share/@b33boy/1e8b9f69-8305-44c2-8f00-154e8972f912.png" 
-					alt="Wakatime langauges used" 
-						width="400" height="300"
-						loading='eager'>				
-				</ImageGlow>
-			</div>
-			<div class="stat">
-				<h3 class="text-glow">{projects.length} Project{projects.length > 1 ? 's' : ''} </h3>
-			</div>
-			<!-- <a href="https://wakatime.com"><img src="https://wakatime.com/share/@b33boy/7753f357-d2cc-47cd-97bd-a13920e5a889.png" /></a> -->
-
+		<div class="stats-centre">
+			<Image quality={100}
+				src="https://wakatime.com/share/@b33boy/1e8b9f69-8305-44c2-8f00-154e8972f912.png" 
+				alt="Wakatime languages used" 
+				width="400" 
+				height="300"
+				loading='eager'>
+			</Image>
+		</div>
+		<div class="stat">
+			<h3 class="text-glow">{projects.length} Project{projects.length > 1 ? 's' : ''} </h3>
+		</div>
     </Card>
   </div>
   <div class="layout-grid-right" slot="right">

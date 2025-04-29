@@ -1,7 +1,9 @@
 {
-	"editor.gotoLocation.multipleDefinitions": "goto",
-	"[javascript]": {
-		"editor.defaultFormatter": "biomejs.biome",
-    "editor.formatOnSave": true,
-  },
+	"editor.formatOnSave": true,
+	"editor.defaultFormatter": "biomejs.biome",
+	"biome.enable": true,
+	"biome.lspBin": "./node_modules/@biomejs/biome/bin/biome",
+	"[astro]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	}
 }

@@ -1,0 +1,50 @@
+---
+title: Self Driving RC Car
+date: 10-08-2018
+description: A self driving RC car that utilizes a neural network
+image: ../assets/banners/banner-arrietty-4.jpg
+info:
+  - text: GitHub
+    link: https://github.com/B33Boy/Physics-Sim
+    icon:
+      type: lucide
+      name: github
+---
+
+This summer, after completing Stanford University's Machine Learning MOOC on Coursera, I sought hands-on experience through a side project. 
+I chose to recreate [Hamuchiwa's AutoRCCar](https://github.com/hamuchiwa/AutoRCCar) project and implemented my own neural network using the Python library Keras. 
+Learning Keras was made significantly easier by reading [Deep Learning with Python](https://www.manning.com/books/deep-learning-with-python).
+
+## Overview
+The Raspberry Pi is responsible for obtaining distance data from the sensors, and images from the PiCamera. 
+The Raspberry Pi then sends this data to the laptop using TCP/IP. 
+At the laptop, image processing is done and the trained deep learning model makes a prediction on what button to press in the form of a one-hot-encoded array (e.g. `[0 0 1]` to move right). 
+The laptop then sends instructions to the Arduino which is interfaced with the RC controller to send the signal to move.
+
+![setup](https://github.com/B33Boy/Personal_Site/raw/master/assets/img/posts/sdc-configuration.png)
+
+![controller](https://github.com/B33Boy/Personal_Site/raw/master/assets/img/posts/controller.jpg)
+
+![car](https://github.com/B33Boy/Personal_Site/raw/master/assets/img/posts/side_view.jpg)
+
+![car-front](https://github.com/B33Boy/Personal_Site/raw/master/assets/img/posts/front.jpg)
+
+![hallway](https://github.com/B33Boy/Personal_Site/raw/master/assets/img/posts/back_view.jpg)
+
+
+## Deep Learning
+### Data Collection and Preprocessing
+With the limitations of my RC car, training was a made a lot more difficult. 
+The turning radius of the car prevented me from training on a circular track. 
+Thus, I had to train on a linear track, resulting in having to manually pick up the car to bring it back to the staring line. 
+By the end of the training, I had  gathered about 1000 samples, yet it still wasn't enough. 
+So, I used a trick I learned from the Machine Learning MOOC to generate more data by flipping all the images and labels in the x direction.
+
+### Building The Model
+The next step was to actually build the Keras model. We first split the data into training and testing sets. Our model consists of 3 Dense layers, but we add some Dropout between layers to prevent the model from picking up random patterns. The final activation is a softmax function which is necessary for our multi-label classification problem.
+
+### Fit The Model
+
+![acc](https://github.com/B33Boy/Personal_Site/raw/master/assets/img/posts/accuracy-epoch1.png)
+
+![loss](https://github.com/B33Boy/Personal_Site/raw/master/assets/img/posts/loss1.png)

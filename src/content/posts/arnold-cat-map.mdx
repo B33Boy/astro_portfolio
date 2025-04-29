@@ -1,0 +1,42 @@
+---
+title: "Arnold’s Cat Map"
+description: ""
+image: "../assets/banners/banner-earthsea-2.jpg"
+createdAt: 12-26-2017
+draft: false
+tags:
+  - math
+---
+
+Arnold's Cat Map is a mathematical transformation that scrambles the positions of pixels in an image in a reversible way. 
+I found about it on the back of my linear algebra book and thought it would be a fun exercise to implement it.
+
+
+It's a transformation which seems to distort an image into random patterns. The transformation,  of an n x n image in a unit square is:
+
+```math
+\Gamma \, : \, (x,y) \to (2x+y,x+y) \bmod 1.
+```
+
+And in matrix notation:
+```math
+\Gamma \left( \begin{bmatrix} x \\ y \end{bmatrix} \right) = \begin{bmatrix} 2 & 1 \\ 1 & 1 \end{bmatrix} \begin{bmatrix} x \\ y \end{bmatrix} \bmod 1 = \begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix} \begin{bmatrix} 1 & 0 \\ 1 & 1 \end{bmatrix} \begin{bmatrix} x \\ y \end{bmatrix} \bmod 1
+```
+
+This applies a shear in the x-direction by a factor of 1, and then a shear in the y-direction by a factor of 1, and shift of all the parts outside the unit square back into it. The mod 1 returns a value between 0 and 1.
+
+#### The Period of The Pixel Map
+
+The underlying pattern of this mapping is that after a number of transformations, the image cycles back into it's original state. There is no single function that shows the correlation between the side length p (in pixels), and the period Π (the number of iterations it takes to return back to the original image). However, the following observations can be made [1]:
+
+$Π(p) = 3p$ if and only if $p = 2 · 5k$ for $k = 1, 2,....$
+
+$Π(p) = 2p$ if and only if $p = 5k$ for $k = 1, 2,... or$
+
+$Π(p) = 6 · 5k$ for $k = 0, 1, 2,....$
+
+$Π(p) ≤ 12p/7$ for all other choices of p
+
+Here's an example of one full cycle of the algorithm: 
+
+![dexter-cat-map](https://camo.githubusercontent.com/119f94999bf682e01a8130ce9a1a5b81d4826a8c1e0454513b9198f0f8a3b2de/68747470733a2f2f692e696d6775722e636f6d2f35624f6e5854542e676966)

@@ -37,3 +37,9 @@
 .blog-tag.active {
   background: var(--primary);
 }
+
+.stats-centre {
+  display: flex;
+  justify-content: center; /* Centers horizontally */
+  align-items: center;     /* Centers vertically */
+}

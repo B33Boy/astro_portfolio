@@ -1,0 +1,81 @@
+---
+title: "Template-based dependency injection (via references)"
+description: ""
+image: "../assets/banners/banner-earthsea-3.jpg"
+createdAt: 02-21-2025
+draft: false
+tags:
+  - cpp
+---
+
+I was exploring ways to avoid dynamic dispatch and improve performance using templates.
+One common use case is when a class has long-lived dependencies that can be fixed at compile time. For example, consider a class `Foo` that persists throughout the lifetime of the program, where its dependencies are not expected to be swapped out at runtime.
+
+In this case, instead of using runtime polymorphism (i.e. with virtual functions), we can inject dependencies as template params.
+
+If class `Foo` should take full ownership of the injected dependencies, passing `std::unique_ptr` and calling `std::move` would be more appropriate. However, in this example, we use reference injection for simplicity and testability.
+
+```cpp title="dep.h"
+class Dep
+{
+public:
+	void some_func()
+	{
+		// Some implementation here
+	}
+};
+```
+
+```cpp title="foo.h"
+template <class Dep>
+class Foo
+{
+public:
+	Foo(Dep& dep) : dep_(dep) {}
+
+	do_something()
+	{
+		dep_.some_func();
+	}
+
+private:
+	Dep& dep_;
+};
+```
+
+```cpp title="main.cpp"
+#include "foo.h"
+int main()
+{
+	Dep dep;
+	Foo<Dep> foo(dep);
+	foo.do_something();
+}
+```
+
+This method injects a reference to a dependency into a class. **It is important to note that the class doesn't own the dependency.** This is useful when it comes to testing where you can mock the dependency without worrying about managing its lifetime.
+
+```cpp title="foo_test.cpp"
+#include <gtest.h>
+#include <gmock.h>
+
+#include "foo.h"
+
+class Mock_Dep
+{
+public:
+	MOCK_METHOD(void, some_func, ());
+};
+
+TEST(foo_test, FooUsesDep)
+{
+  // Arrange
+  Mock_Dep dep;
+  Foo<Dep> foo(dep);
+
+  // Assert/Act
+  EXPECT_CALL(dep, some_func()).Times(1);
+  foo.do_something();
+}
+
+```

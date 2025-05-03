@@ -1,0 +1,136 @@
+---
+title: "Effective Modern C++ - Item 1 - Understand template type deduction"
+description: ""
+image: "../assets/banners/banner-earthsea-4.jpg"
+createdAt: 03-08-2025
+draft: false
+tags:
+  - cpp
+---
+
+
+# Item 1: Understand template type deduction.
+
+```cpp
+template<typename T>
+void f(ParamType param); 
+
+//f(expr); deduce T and ParamType from expr
+```
+Compilers deduce types for `T` and `Paramtype`. `Paramtype` often contains const or ref qualifiers. 
+
+---
+### Case 1. Paramtype is a Ref (&) or Pointer (\*) but not Universal Reference (&&)
+	When `ParamType` is a reference (`T&` or `T*`, but not `T&&`), the reference-ness of the argument is ignored during type deduction, meaning `T` is deduced as the base type.
+
+1. If expr's type is `&` or `*`, ignore it when substituting it into ParamType (don't ignore the const)
+2. Pattern match **expr**'s type against **ParamType** to determine T
+
+#### Ex1.
+```cpp
+template<typename T>
+void f(T& param); 
+
+int x = 27;
+int const cx = x;
+int const& rx = x;
+
+// Type deductions
+f(x);  // ParamType = int&,       T = int
+f(cx); // ParamType = int const&, T = int const
+f(rx); // ParamType = int const&, T = int const  
+```
+Walkthrough of Ex 1:
+	x is `int`, `T&` must match `int&,` so `T = int`
+	cx is `int const`, `T&` must match `int const&`, so `T = int const`  
+	rx is `int const&`, `T&` must match `int const&`, so `T = int const`
+
+#### Ex2.
+```cpp
+template<typename T>
+void f(T const& param); 
+
+int x = 27;
+int const cx = x;
+int const& rx = x;
+
+// Type deductions
+f(x);  // ParamType = int const&, T = int
+f(cx); // ParamType = int const&, T = int
+f(rx); // ParamType = int const&, T = int   
+
+```
+Walkthrough of Ex2:
+	x is `int`,  `T const&` must match `int const&`, so `T = int`
+	cx is `int const`, `T const&` must match `int const&`, so `T = int`
+	rx is `int const&`, `T const&` must match `int const&`, so `T = int`
+
+#### Ex3.
+```cpp
+
+template<typename T>
+void f(T* param); 
+
+int x = 27;
+int const* px = x;
+
+// Type deductions
+f(&x);  // ParamType = int* , T = int 
+f(px); // ParamType = int const* , T = int const   
+```
+Walkthrough of Ex3:
+	x is `int`, `T*` must match `int*`, T = `int`
+	px is `int const`, `T*` must match `int const*`, T = `int const`
+
+---
+### Case 2. Paramtype is a Universal Reference (&&)
+	`lvalue` arguments get special treatment
+
+1. If expr is an lvalue, both T and ParamType are deduced to be lvalue refs
+2. If expr is rvalue, normal rules apply
+
+#### Ex1.
+```cpp
+
+template<typename T>
+void f(T&& param); 
+
+int x = 27;
+int const cx = x;
+int const& rx = x;
+
+// Type deductions
+f(x);  // ParamType = int&, T = int& 
+f(cx); // ParamType = int const&, T = int const& 
+f(rx); // ParamType = int const&, T = int const&     
+f(27); // ParamType = int, T = int  
+```
+Walkthrough of Ex1:
+	x is lvalue `int`,  `T&&` must match `int&`, so `T = int&`
+	cx is lvalue `int const`, `T&&` must match `int const&`, so `T = int const&`
+	rx is lvalue `int const&`, `T&&` must match `int const&`, so `T = int const&`
+	27 is rvalue `int`, `T&&` must match to `int&&`, so `T = int`
+
+---
+### Case 3. ParamType is Neither  (pass by value)
+	`const` and `volatile` are treated as `non-const` and `non-volatile`
+
+```cpp
+template<typename T>
+void f(T param); 
+
+int x = 27;
+int const cx = x;
+int const& rx = x;
+
+// Type deductions
+f(x);  // ParamType = int, T = int  
+f(cx); // ParamType = int, T = int 
+f(rx); // ParamType = int, T = int       
+```
+Strip `const` and `&` from args
+
+
+### Array Arguments
+Arrays decay to pointers
+

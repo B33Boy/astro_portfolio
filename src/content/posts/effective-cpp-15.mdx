@@ -1,0 +1,87 @@
+---
+title: "Effective Modern C++ - Item 15 - Use constexpr whenever possible"
+description: ""
+image: "../assets/banners/banner-mononoke-1.jpg"
+createdAt: 03-10-2025
+draft: false
+tags:
+  - cpp
+---
+
+# Item 15: Use constexpr whenever possible
+
+Key takeaways:
+
+- `constexpr` objects are const and **initialized with values known at compile time**
+- `constexpr` functions can produce compile-time results when called with arguments whose values are known during compilation
+- `constexpr` objects and functions may be used in wider range of contexts than non-constexpr objects and functions
+- `constexpr` is part of an object/function's interface
+
+`constexpr` functions are will be evaluated at compile-time if all arguments are known, otherwise it will be treated like a normal function.
+
+```cpp
+constexpr int pow(int base, unsigned exp) noexcept {...}
+
+constexpr auto numConds = 5;
+std::array<int, pow(3, numConds)> results; // creates an array with 3^5 elements at compile-time
+
+auto base = readfromDB(...);
+auto exp = readFromDB(...);
+auto p = pow(base, exp); // Regular run-time usage
+```
+
+### C++11 and C++14 restrictions for `constexpr` functions
+
+In C++11, `constexpr` functions may contain no more than single return statement.
+The workaround for that is ternary operators:
+
+```cpp
+constexpr int pow(int base, unsigned exp) noexcept
+{
+	return (exp == 0 ? 1 : base * pow(base, exp-1));
+}
+```
+
+In C++14, you can do more computation before calling return.
+
+### Getters
+
+`constexpr` functions are limited to taking and returning literal types (i.e. non-trivial construction logic). This includes user defined types:
+
+```cpp
+class Point {
+public:
+	constexpr Point(double xVal = 0, double yVal = 0) noexcept : x(xVal), y(yVal){}
+
+	constexpr double xValue() const noexcept { return x; }
+	constexpr double yValue() const noexcept { return y; }
+
+	void setX(double newX) noexcept { x = newX; }
+	void setY(double newY) noexcept { y = newY; }
+private:
+	double x, y;
+};
+```
+
+So this way you can declare an object of the class as a `constexpr` (e.g. `constexpr Point p1(1, 2);`)
+
+### C++11 and C++14 restrictions for `constexpr` member functions
+
+In C++11, two restrictions prevent Point’s member functions `setX` and `setY` from being declared `constexpr`.
+
+- First, they modify the object they operate on, and in **C++11, `constexpr` member functions are implicitly const.**
+- Second, they have void return types, and void isn’t a literal type in C++11.
+
+Both these restrictions are lifted in C++14, so in C++14, even Point’s setters can be `constexpr`:
+
+```cpp
+class Point
+{
+public:
+	constexpr void setX(double newX) noexcept
+	{ x = newX; }
+
+	constexpr void setY(double newY) noexcept
+	{ y = newY; }
+};
+```

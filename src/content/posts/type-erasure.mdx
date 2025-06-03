@@ -1,0 +1,347 @@
+
+---
+title: "Funcy Templates: Learning C++ Type Erasure the Hard Way"
+description: ""
+image: "../assets/banners/banner-mononoke-4.jpg"
+createdAt: 06-03-2025
+draft: false
+tags:
+  - cpp
+---
+
+I wanted to get more familiar with C++ templates and generic programming, so I challenged myself with developing a lightweight version of `std::function` to store and invoke any callable. The goal is to learn about **type-erasure** which is a way to store and use objects of different types by abstracting away the type info behind a common interface.
+
+For this problem, I want to be able to store and invoke lambdas, function pointers, and functors of various types. Here's an example of our desired behaviour:
+```cpp
+Funcy f1 = [](){std::cout << "Lambda!\n";}
+Funcy f2 = someFunction;
+Funcy f3 = Functor{};
+
+f1();
+f2();
+f3();
+
+```
+
+
+## Naive approach
+We can design a templated class to store a callable type and then have it invoked with the overloaded `operator()`. But notice how the type of the entire class changes here through the `CallableType`. This would prevent us from storing instances of `Funcy<CallableObjectA>` with `Funcy<CallableObjectB>` in the same container. 
+```cpp title="funcy.hpp"
+
+#ifndef FUNCY_HPP
+#define FUNCY_HPP
+
+#include <memory>
+
+template <typename CallableType>
+class Funcy {
+	
+public:
+	void operator()() {
+		callable_();
+	}
+private:
+	CallableType callable_;
+};
+
+/*
+	Example usage:
+	Funcy<std::function<void()>> f1 = [] { std::cout << "Hello\n"; };
+	Funcy<void(*)()> f2 = some_function;
+	Funcy<SomeFunctor> f3 = SomeFunctor{};
+	
+	f1 is of type Funcy<std::function<void()>>
+	f2 is of type Funcy<void(*)()>
+	f3 is of type Funcy<SomeFunctor>
+*/
+
+
+```
+
+
+## Abstracting Types Using a Templated Wrapper Class
+So how do we get the various Funcy wrappers to be of a uniform type? 
+
+Consider a *wrapper class that stores a templated type* and *implements a behaviour* through an interface.  
+
+Similar to the naive approach, we template the `CallableWrapper` class with a `CallableType`. This enables us to store the CallableType as a private member, and allow it to be called using the overrided `call()`.  The difference here is that the `CallableWrapper` class now implements the `Callable` behaviour.
+
+> Note that in the constructor, we take a universal reference to a callable and use *perfect forwarding* to initialize the private member `callable_`. This allows efficient handling for the `callable` argument; if it is an *lvalue*, it would be copied into `callable_`, and if it's an *rvalue*, it would be moved.  
+
+> Also note that the line `callable_()` invokes the callable for cases where there aren't any arguments. We are going to build upon this to invoke functions with varying signatures.
+```cpp
+template <typename CallableType>
+class CallableWrapper : public Callable
+{
+public:
+    CallableWrapper(CallableType&& callable) : callable_(std::forward<CallableType>(callable))
+    {
+    }
+
+    void call() override
+    {
+        callable_();
+    }
+
+private:
+    CallableType callable_;
+};
+```
+
+
+The`Callable` class below is a C++ interface (as identified by the pure virtual method and defaulted virtual destructor); it enforces that any class that implements it must implement the `call()` behaviour. 
+```cpp
+class Callable
+{
+public:
+    virtual ~Callable() = default;
+    virtual void call() = 0;
+};
+```
+
+## Type-Erasing Wrapper
+We aren't done yet! What we have above isn't too far off from the naive approach but it is still missing one thing. We still need a type-erasing wrapper for users to interact with. It will hold any callable object with the `void()` signature. Let's break it down:
+
+- We have a class `Funcy` that holds a `unique_ptr` to an object that is a`Callable`
+- `Funcy` will be templated with a `CallableType` *only through its constructor*
+- In the constructor, this `unique_ptr<Callable>` will be initialized using `std::make_unique<...>(...)`. `CallableWrapper<std::decay_t<CallableType>>>` specifies that we want a pointer to the `CallableWrapper` of type `CallableType`. With `std::decay_t`, any references, or const, or volatile qualifiers get stripped so it ensures that our pointer will be initialized correctly. Finally, we once again forward the universal reference `callable` to preserve the lvalue/rvalue. 
+- Also we overload the `operator()` in Funcy to invoke `call()` of the stored CallableType
+
+> For example: suppose we create a Funcy object using a function reference `Funcy f(func_ref);`. Then the type `void(&)()` decays to `void(*)()`
+
+```cpp
+class Funcy
+{
+public:
+    template <typename CallableType>
+    Funcy(CallableType&& callable)
+        : callable_(std::make_unique<CallableWrapper<std::decay_t<CallableType>>>(std::forward<CallableType>(callable)))
+    {
+    }
+
+    void operator()()
+    {
+        callable_->call();
+    }
+
+private:
+    std::unique_ptr<Callable> callable_;
+};
+
+```
+
+
+Final version with this design:
+```cpp title="funcy.hpp"
+
+#ifndef FUNCY_HPP
+#define FUNCY_HPP
+
+#include <memory>
+
+class Callable
+{
+public:
+    virtual ~Callable() = default;
+    virtual void call() = 0;
+};
+
+template <typename CallableType>
+class CallableWrapper : public Callable
+{
+public:
+    CallableWrapper(CallableType&& callable) : callable_(std::forward<CallableType>(callable))
+    {
+    }
+
+    void call() override
+    {
+        callable_();
+    }
+
+private:
+    CallableType callable_;
+};
+
+class Funcy
+{
+public:
+    template <typename CallableType>
+    Funcy(CallableType&& callable)
+        : callable_(std::make_unique<CallableWrapper<std::decay_t<CallableType>>>(std::forward<CallableType>(callable)))
+    {
+    }
+
+    void operator()()
+    {
+        callable_->call();
+    }
+
+private:
+    std::unique_ptr<Callable> callable_;
+};
+#endif
+```
+
+## Supporting Arbitrary Function Signatures
+The above only works for `void()` callables. To support any signature, we introduce template parameters for return type `R` and argument types `Args...`. This does mean we can only store callables with the _same signature_ in a single container.
+
+Update the `Callable` interface:
+```cpp
+template <typename R, typename... Args>
+class Callable
+{
+public:
+    virtual ~Callable() = default;
+    virtual R call(Args... args) = 0;
+};
+```
+
+
+Update the wrapper class to forward arguments:
+```cpp
+template <typename CallableType, typename R, typename... Args>
+class CallableWrapper : public Callable<R, Args...>
+{
+public:
+    CallableWrapper(CallableType&& callable) : callable_(std::forward<CallableType>(callable))
+    {
+    }
+
+    R call(Args... args) override
+    {
+        return callable_(std::forward<Args>(args)...);
+    }
+
+private:
+    CallableType callable_;
+};
+```
+
+
+Update `Funcy` to be templated on the callable signature:
+```cpp
+template <typename Signature>
+class Funcy; 
+
+template <typename R, typename... Args>
+class Funcy<R(Args...)>
+{
+public:
+    template <typename CallableType>
+    Funcy(CallableType&& callable)
+        : callable_(std::make_unique<
+							CallableWrapper<std::decay_t<CallableType>, R, Args...>
+						>(std::forward<CallableType>(callable))
+					)
+    {
+    }
+
+    R operator()(Args... args)
+    {
+        return callable_->call(std::forward<Args>(args)...);
+    }
+
+private:
+    std::unique_ptr<Callable<R, Args...>> callable_;
+};
+```
+
+
+Our final code looks like:
+```cpp title="funcy.hpp"
+#ifndef FUNCY_HPP
+#define FUNCY_HPP
+
+#include <memory>
+
+template <typename R, typename... Args>
+class Callable
+{
+public:
+    virtual ~Callable() = default;
+    virtual R call(Args... args) = 0;
+};
+
+template <typename CallableType, typename R, typename... Args>
+class CallableWrapper : public Callable<R, Args...>
+{
+public:
+    CallableWrapper(CallableType&& callable) : callable_(std::forward<CallableType>(callable))
+    {
+    }
+
+    R call(Args... args) override
+    {
+        return callable_(std::forward<Args>(args)...);
+    }
+
+private:
+    CallableType callable_;
+};
+
+template <typename Signature>
+class Funcy; 
+
+template <typename R, typename... Args>
+class Funcy<R(Args...)>
+{
+public:
+    template <typename CallableType>
+    Funcy(CallableType&& callable)
+        : callable_(std::make_unique<
+							CallableWrapper<std::decay_t<CallableType>, R, Args...>
+						>(std::forward<CallableType>(callable))
+					)
+    {}
+
+    R operator()(Args... args)
+    {
+        return callable_->call(std::forward<Args>(args)...);
+    }
+
+private:
+    std::unique_ptr<Callable<R, Args...>> callable_;
+};
+
+
+#endif
+```
+
+
+Here's how it would be used:
+```cpp title="main.cpp"
+#include "funcy.hpp"
+#include <iostream>
+
+void somefunc(int x, double y)
+{
+    std::cout << "some function, x: " << x << ", y: " << y << "\n";
+}
+
+class SomeFunctor
+{
+public:
+    void operator()()
+    {
+        std::cout << "some functor\n";
+    }
+};
+
+int main()
+{
+    // Basic functions
+    Funcy<void()> f1([]() { std::cout << "some lambda\n"; }); // lambda is rvalue, consumed
+    Funcy<void(int, double)> f2(somefunc);                    // function ptr is lvalue, preserved
+    Funcy<void()> f3(SomeFunctor{});                          // functor is rvalue, consumed
+
+    f1();
+    f2(69, 6.9);
+    f3();
+    
+    return 0;
+}
+```
+
+## More resources on type-erasure
+[Breaking Dependencies - C++ Type Erasure - The Implementation Details - Klaus Iglberger CppCon 2022](https://youtu.be/qn6OqefuH08)

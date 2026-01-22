@@ -1,0 +1,122 @@
+---
+title: "Building A State Machine In Go"
+description: ""
+image: "../assets/banners/banner-earthsea-3.jpg"
+createdAt: 12-23-2025
+draft: false
+tags:
+  - go
+---
+
+While working on the backend for a web-based playing card game called [Judgement](https://en.wikipedia.org/wiki/Kachufool), I required a clean way to manage the flow of the game.
+The obvious solution to that was a state machine, here's how I built it with Go.
+
+## States
+In my game, I have the following states:
+- Bidding: Players place their bids
+- Playing: Players play their moves
+- Resolution: Points are assigned to each player
+- Game Over: The game ends and the winner is chosen
+
+The game cycles through Bidding, Playing, and Resolution for 10-14 rounds where players accumulate points at the end of each round.
+
+## Events
+In order to actually facilitate the transiton of each state, we introduce the concept of Events:
+- bidding_done
+- playing_continue
+- playing_done
+- round_resolved
+
+## Implementation
+
+### StateMachine Struct 
+First define types for `State` and `Event` to make the code more readable
+```Go
+type State string
+type Event string
+```
+
+Then create the state machine
+```Go
+type StateMachine struct {
+	state       State
+	transitions map[State]map[Event]State
+}
+```
+
+This `transitions` defines which events are valid for each state and what state they lead to. 
+
+### Initializing The State Machine
+
+```Go
+func NewStateMachine(initial State) *StateMachine {
+	return &StateMachine{
+		state:       initial,
+		transitions: make(map[State]map[Event]State),
+	}
+}
+
+```
+
+### Adding Transitions
+```Go
+func (sm *StateMachine) AddTransition(from State, event Event, to State) {
+	if sm.transitions[from] == nil {
+		sm.transitions[from] = make(map[Event]State)
+	}
+	sm.transitions[from][event] = to
+}
+```
+
+### Triggering Events
+```Go
+func (sm *StateMachine) Trigger(event Event) error {
+	next, ok := sm.transitions[sm.state][event]
+	if !ok {
+		return fmt.Errorf("invalid transition: %s + %s", sm.state, event)
+	}
+	sm.state = next
+	return nil
+}
+```
+
+## Example Usage
+First the game-specific states and events are defined
+```
+const (
+	// States
+	StateBid        State = "bidding"
+	StatePlay       State = "playing"
+	StateResolution State = "resolution"
+	StateGameOver   State = "gameover"
+)
+
+const (
+	// Events
+	BiddingDone     Event = "bidding_done"
+	PlayingContinue Event = "playing_continue"
+	PlayingDone     Event = "playing_done"
+	RoundResolved   Event = "round_resolved"
+)
+```
+
+Then the state machine is instantiated and the transitions are added. 
+```Go 
+sm := NewStateMachine(StateBid) 
+
+// Define valid state transitions
+sm.AddTransition(StateBid, BiddingDone, StatePlay)
+sm.AddTransition(StatePlay, PlayingDone, StateResolution)
+sm.AddTransition(StateResolution, PlayingContinue, StateBid)
+sm.AddTransition(StateResolution, PlayingDone, StateGameOver)
+```
+Remember, you don't have to linearly transition. Notice how StateResolution can transition back to `StateBid` or `StateGameOver` depending on the Event.
+
+Finally in our game logic, whenever an event occurs, we can transition by using the event as an input.
+For example, if we call `Trigger(BiddingDone)` it should automatically transition to   
+
+```Go
+if err := sm.Trigger(BiddingDone); err != nil {
+	fmt.Println(err)
+}
+```

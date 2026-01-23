@@ -36,7 +36,7 @@ const { Content: About } = await render(about!);
 			<ImageGlow quality={100} width={500} height={376} src={ProfilePicture} alt="Louis looking out of a window" loading='eager' />
 			</div>
 		</Card>
-		<!-- <Card>
+		<Card>
 			<h3 class="no-mt">Socials</h3>
 			<ul class="overview-list">
 				{socials.map((item) => (
@@ -48,7 +48,7 @@ const { Content: About } = await render(about!);
 					</li>
 				))}
 			</ul>
-		</Card> -->
+		</Card> 
 		<Card>
 			<div class="header-container">
 				<Icon type='lucide' name="user" width={24} height={24} class='glow-icon' />
@@ -58,6 +58,8 @@ const { Content: About } = await render(about!);
 				<About />
 			</div>
 		</Card>
+
+
 		<!-- <Card class="flex-col-card">
 			<div>
 				<h1>Skills</h1>
@@ -69,6 +71,45 @@ const { Content: About } = await render(about!);
 	</div>
 	
 	<div class="layout-grid-right" slot="right">
+
+		<Card>
+			<div class="header-container">
+				<Icon type='lucide' name="briefcase-business" width={24} height={24} class='glow-icon' />
+				<h1>Work Experience</h1>
+			</div>
+			<div class="work-experience-container">
+				{workExperience.reverse().map((entry) => (
+					<div class="work-experience-entry">
+						<span class="work-experience-duration">{entry.data.duration}</span>
+						<h3 class="work-experience-company">{entry.data.company}</h3>
+						<span class="work-experience-role">{entry.data.title}</span>
+						<p class="work-experience-desc">{entry.data.description}</p>
+					</div>
+				))}
+			</div>
+		</Card>
+
+		<Card>
+			<div class="header-container">
+				<Icon type='lucide' name="user" width={24} height={24} class='glow-icon' />
+				<h1>Stats</h1>
+			</div>
+
+			<div class="graph-wrapper">
+			<img
+				src="https://github-readme-activity-graph.vercel.app/graph?username=B33Boy&theme=high-contrast&days=60"
+				alt="GitHub activity graph"
+				loading="lazy"
+			/>
+			</div>
+			<div class="graph-wrapper">
+			<img
+				src="https://leetcard.jacoblin.cool/B33boy?theme=radical&font=Prompt&colors=%231e1e2e%2C%2345475a%2C%23cdd6f4%2C%23bac2de%2C%23fab387%2C%238c5cf5%2C%23f9e2af%2C%23f38ba8&ext=heatmap"
+				alt="LeetCode Stats"
+				loading="lazy"
+				/>
+			</div>
+		</Card>
 
 		<Card>
 			<div class="header-container">
@@ -104,22 +145,7 @@ const { Content: About } = await render(about!);
 				))}
 			</div>
 		</Card>
-		<Card>
-			<div class="header-container">
-				<Icon type='lucide' name="briefcase-business" width={24} height={24} class='glow-icon' />
-				<h1>Work Experience</h1>
-			</div>
-			<div class="work-experience-container">
-				{workExperience.reverse().map((entry) => (
-					<div class="work-experience-entry">
-						<span class="work-experience-duration">{entry.data.duration}</span>
-						<h3 class="work-experience-company">{entry.data.company}</h3>
-						<span class="work-experience-role">{entry.data.title}</span>
-						<p class="work-experience-desc">{entry.data.description}</p>
-					</div>
-				))}
-			</div>
-		</Card>
+
 	</div>
 
 </div>

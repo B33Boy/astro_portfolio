@@ -93,3 +93,12 @@
   justify-content: center; /* Centers horizontally */
   align-items: center;     /* Centers vertically */
 }
+
+.graph-wrapper {
+  overflow-x: auto;
+}
+
+.graph-wrapper img {
+  width: 100%;
+  min-width: 600px;
+}

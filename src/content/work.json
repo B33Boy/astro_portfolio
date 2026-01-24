@@ -4,20 +4,35 @@
     "duration": "May 2019 - Dec 2019",
     "company": "Telus",
     "title": "Software Developer - Co-op",
-    "description": ""
+    "description": [
+      "Developed shellscripts within GCP Compute Engine to dynamically populate large volumes of data into Cloud Storage Buckets, enabling faster ingestion into BigQuery and saving the team ~10 hours per week.",
+      "Created Python automation scripts to extract data from internal sources, reducing task time to under 30 seconds.",
+      "Integrated CI/CD into multiple Git repositories using Cloud Build, shortening feedback cycles."
+    ]
   },
   {
     "id": 2,
     "duration": "Jan 2020 - Sep 2020",
     "company": "Telus",
-    "title": "Cloud Development Contractor",
-    "description": ""
+    "title": "Cloud Developer - Telus Insights",
+    "description": [
+      "Leveraged Terraform to automate GCP infrastructure as part of the Telus Insights Project, leading to $1,600 in weekly cost savings by removal of redundant VMs.",
+      "Collaborated with cross-functional teams including external vendors, offshore QA, and product ownersto deliver infrastructure milestones on time and within budget, ensuring alignment between architecture and business goals.",
+      "Conducted analysis of GCP Compute Engine instance pricing tiers, selecting configurations tailored to project memory and performance requirements achieving $2,000+ in monthly savings through informed architectural trade-offs"
+    ]
   },
   {
     "id": 3,
     "duration": "May 2022 - May 2024",
     "company": "MDA Space",
-    "title": "Software Developer",
-    "description": ""
+    "title": "Software Developer - Canadarm3",
+    "description": [
+      "Played a key role in developing mission-critical flight and ground software, applying strong engineering principles and SDLC/ATDD methodologies to ensure reliability, traceability, and system resilience in a concurrent environment.",
+      "Developed C++ modules compliant with NASA software standards, integrating telemetry data from embedded code for real-time arm and joint state monitoring.",
+      "Served as Quality Lead, driving testing best practices and ensuring acceptance tests aligned with customer requirements to improve test coverage and delivery confidence.",
+      "Created Python automation scripts for document generation and test verification, saving hours of manual work per release and improving consistency across test cycles.",
+      "Leveraged Builder and Factory design patterns to modularize message transmission, data mapping, and client request handling systems, reducing future module development time by 50% and enhancing code maintainability.",
+      "Built a React interface for creating and dispatching flight commands (e.g. lock, limp, move-joints), streamlining command workflows and improving operator efficiency in mission-critical environments."
+    ]
   }
 ]

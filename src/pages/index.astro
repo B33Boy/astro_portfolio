@@ -78,13 +78,20 @@ const { Content: About } = await render(about!);
 				<h1>Work Experience</h1>
 			</div>
 			<div class="work-experience-container">
-				{workExperience.reverse().map((entry) => (
-					<div class="work-experience-entry">
-						<span class="work-experience-duration">{entry.data.duration}</span>
-						<h3 class="work-experience-company">{entry.data.company}</h3>
-						<span class="work-experience-role">{entry.data.title}</span>
-						<p class="work-experience-desc">{entry.data.description}</p>
-					</div>
+				{workExperience.slice().reverse().map((entry) => (
+					<details class="work-experience-entry">
+					    <summary class="work-experience-header">
+							<span class="work-experience-duration">{entry.data.duration}</span>
+							<h3 class="work-experience-company">{entry.data.company}</h3>
+							<span class="work-experience-role">{entry.data.title}</span>
+						</summary>
+						
+						<ul class="work-experience-desc">
+							{entry.data.description.map((point) => (
+							<li>{point}</li>
+							))}
+						</ul>
+					</details>
 				))}
 			</div>
 		</Card>

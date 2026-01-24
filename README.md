@@ -5,4 +5,7 @@
 `npm install`
 `npm run dev`
 
+
+# Theme Used
+https://github.com/louisescher/spectre
 ---

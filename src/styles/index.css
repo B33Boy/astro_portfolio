@@ -80,6 +80,40 @@
   margin-bottom: .75rem;
 }
 
+.work-experience-entry summary::-webkit-details-marker {
+  display: none;
+}
+
+.work-experience-entry summary {
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  margin: 10px;
+}
+
+.work-experience-entry summary::after {
+  margin-left: auto;
+  transition: transform 0.2s;
+}
+
+.work-experience-entry[open] summary::after {
+  transform: rotate(90deg);
+}
+
+.work-experience-desc li {
+  margin-bottom: 15px;
+}
+
+.work-experience-entry:hover, .work-experience-entry:focus-visible {
+  background-color: rgba(var(--primary-rgb), .125);
+  color: white;
+  text-decoration: none;
+}
+
+.work-experience-entry:focus-visible {
+  outline: none;
+}
+
 .socials-link {
   color: white;
   display: flex;
@@ -102,3 +136,4 @@
   width: 100%;
   min-width: 600px;
 }
+

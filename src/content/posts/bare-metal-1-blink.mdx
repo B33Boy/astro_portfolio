@@ -1,0 +1,127 @@
+---
+title: "Bare Metal STM32 - Blink"
+description: ""
+image: "../assets/banners/banner-arrietty-5.jpg"
+createdAt: 03-19-2026
+draft: false
+tags:
+  - c
+---
+
+import { Image } from "astro:assets";
+import img1 from "../assets/post-images/bare-metal-1-blink/img1.png";
+import img2 from "../assets/post-images/bare-metal-1-blink/img2.png";
+import img3 from "../assets/post-images/bare-metal-1-blink/img3.png";
+import img4 from "../assets/post-images/bare-metal-1-blink/img4.png";
+import img5 from "../assets/post-images/bare-metal-1-blink/img5.png";
+
+Peeling back the layers of abstraction, we have bare-metal programming for microcontrollers. One thing I think many students don't learn during university is how to actually use official documentation (e.g. datasheets). So I wanted to create a short guide on how I go about performing common tasks using bare-metal programming on the STM32F411. I'll be using STM32CubeIDE, but feel free to use any IDE you like.
+## Setup
+We will reference three pieces of documentation:
+1. [STM32F411 Nucleo User Manual](https://www.st.com/resource/en/user_manual/um1724-stm32-nucleo64-boards-mb1136-stmicroelectronics.pdf)
+2. [STM32F411 Datasheet](https://www.st.com/resource/en/datasheet/stm32f411ce.pdf)
+3. [STM32F411 Reference Manual](https://www.st.com/resource/en/reference_manual/rm0383-stm32f411xce-advanced-armbased-32bit-mcus-stmicroelectronics.pdf)
+
+I will also be including these headers into my project.
+- CMSIS (Common Microcontroller Software Interface Standard) headers provided by ARM. 
+- `stm32f411xe.h` header provided by ST 
+
+ARM designs the CPU architecture and licenses it to manufacturers like STMicroelectronics to build chips around. The CMSIS headers define the Cortex-M4 core, and they're wired up to the STM32F411's peripherals via `stm32f4xx.h`, which is what we'll actually be including.
+
+To include the headers into the project:
+> Right-click your project → Properties → C/C++ Build → Settings → MCU GCC Compiler → Include Paths. Hit the "+" icon and add the paths
+
+So in my case I would be adding the following paths:
+- `Headers/CMSIS` and `HEADERS/ST`
+## Blinking an LED
+The User Manual tells us that the green user LED (LD2) is connected to **PA5** (Port A, Pin 5):
+> User LD2: the green LED is a user LED connected to ... STM32 I/O PA5 (pin 21) ...
+
+### Enabling Clock Access to Port A
+
+Before we can control any peripheral, we need to enable its clock. Section **5.3.2** of the Reference Manual explains that peripheral clocks are gated off by default to save power, so we need to explicitly turn them on.
+
+<Image
+  src={img2}
+  alt="param handling"
+  width="850"
+/>
+
+Next, we need to figure out which clock register to use: `RCC_AHB1ENR` or `RCC_AHB2ENR`. Looking at **Figure 3 (STM32F411xC/xE block diagram)** in the Datasheet, we can see that GPIO Port A sits on the **AHB1 bus** (Advanced High-performance Bus), so we'll be using `RCC_AHB1ENR`.
+
+<Image
+  src={img1}
+  alt="param handling"
+  width="850"
+/>
+
+The Reference Manual covers this register in section **7.3.10 - RCC AHB1 peripheral clock enable register (RCC_AHB1ENR)**. To enable the clock for Port A, we set **bit 0** to 1:
+
+<Image
+  src={img3}
+  alt="param handling"
+  width="850"
+/>
+
+```c
+#define GPIOAEN (1U<<0)
+
+RCC->AHB1ENR |= GPIOAEN;
+```
+
+
+### Configuring Pin 5 as Output
+GPIO ports have at least two registers: a **direction register** and a **data register**. The direction register configures pins as input or output; the data register reads from or writes to them.
+
+Section **8.4.1 - GPIO Port Mode Register (GPIOx_MODER)** in the Reference Manual is what we want. Each pin gets a 2-bit field, and the formula for finding pin `y`'s bits is `2y` and `2y+1`. For pin 5, that's bits **10 and 11**. The encoding for general-purpose output is `01`, so right to left, bit 10 = 1 and bit 11 = 0:
+
+<Image
+  src={img4}
+  alt="param handling"
+  width="850"
+/>
+
+```c
+	GPIOA->MODER |= (1U<<10);
+	GPIOA->MODER &= ~(1U<<11);
+```
+
+### Toggling LED
+Now that pin direction is set, we write to the data register. Section **8.4.6 - GPIO Port Output Data Register (GPIOx_ODR)** in the Reference Manual covers this. We can toggle pin 5 by XOR-ing its bit on every iteration:
+<Image
+  src={img5}
+  alt="param handling"
+  width="850"
+/>
+
+
+We can toggle Pin5 by inverting the bit every time:
+```c
+#define PIN5 (1U<<5)
+
+GPIOA->ODR ^= PIN5;
+```
+
+
+### Putting it all together
+```c title="main.c"
+#include "stm32f4xx.h"
+
+#define GPIOAEN (1U<<0)
+#define PIN5 (1U<<5)
+
+int main(void)
+{
+	RCC->AHB1ENR |= GPIOAEN;
+	GPIOA->MODER |= (1U<<10);
+	GPIOA->MODER &= ~(1U<<11);
+
+	while(1)
+	{
+		GPIOA->ODR ^= PIN5;
+		
+		// short delay
+		for(int i=0; i<100000; i++){};
+	}
+}
+```

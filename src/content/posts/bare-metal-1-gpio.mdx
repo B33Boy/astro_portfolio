@@ -1,5 +1,5 @@
 ---
-title: "Bare Metal STM32 - Blink"
+title: "Bare Metal STM32 - GPIO"
 description: ""
 image: "../assets/banners/banner-arrietty-5.jpg"
 createdAt: 03-19-2026
@@ -9,11 +9,13 @@ tags:
 ---
 
 import { Image } from "astro:assets";
-import img1 from "../assets/post-images/bare-metal-1-blink/img1.png";
-import img2 from "../assets/post-images/bare-metal-1-blink/img2.png";
-import img3 from "../assets/post-images/bare-metal-1-blink/img3.png";
-import img4 from "../assets/post-images/bare-metal-1-blink/img4.png";
-import img5 from "../assets/post-images/bare-metal-1-blink/img5.png";
+import img1 from "../assets/post-images/bare-metal-1-gpio/img1.png";
+import img2 from "../assets/post-images/bare-metal-1-gpio/img2.png";
+import img3 from "../assets/post-images/bare-metal-1-gpio/img3.png";
+import img4 from "../assets/post-images/bare-metal-1-gpio/img4.png";
+import img5 from "../assets/post-images/bare-metal-1-gpio/img5.png";
+import img6 from "../assets/post-images/bare-metal-1-gpio/img6.png";
+import img7 from "../assets/post-images/bare-metal-1-gpio/img7.png";
 
 Peeling back the layers of abstraction, we have bare-metal programming for microcontrollers. One thing I think many students don't learn during university is how to actually use official documentation (e.g. datasheets). So I wanted to create a short guide on how I go about performing common tasks using bare-metal programming on the STM32F411. I'll be using STM32CubeIDE, but feel free to use any IDE you like.
 ## Setup
@@ -43,7 +45,7 @@ Before we can control any peripheral, we need to enable its clock. Section **5.3
 
 <Image
   src={img2}
-  alt="param handling"
+  alt="Peripheral Clock Gating"
   width="850"
 />
 
@@ -51,7 +53,7 @@ Next, we need to figure out which clock register to use: `RCC_AHB1ENR` or `RCC_A
 
 <Image
   src={img1}
-  alt="param handling"
+  alt="Block Diagram"
   width="850"
 />
 
@@ -59,7 +61,7 @@ The Reference Manual covers this register in section **7.3.10 - RCC AHB1 periphe
 
 <Image
   src={img3}
-  alt="param handling"
+  alt="Clock Enable Register"
   width="850"
 />
 
@@ -77,7 +79,7 @@ Section **8.4.1 - GPIO Port Mode Register (GPIOx_MODER)** in the Reference Manua
 
 <Image
   src={img4}
-  alt="param handling"
+  alt="Port Mode Register"
   width="850"
 />
 
@@ -90,7 +92,7 @@ Section **8.4.1 - GPIO Port Mode Register (GPIOx_MODER)** in the Reference Manua
 Now that pin direction is set, we write to the data register. Section **8.4.6 - GPIO Port Output Data Register (GPIOx_ODR)** in the Reference Manual covers this. We can toggle pin 5 by XOR-ing its bit on every iteration:
 <Image
   src={img5}
-  alt="param handling"
+  alt="Port Output Data Register"
   width="850"
 />
 
@@ -122,6 +124,105 @@ int main(void)
 		
 		// short delay
 		for(int i=0; i<100000; i++){};
+	}
+}
+```
+
+
+## Bonus: using the BSRR 
+
+The **bit set/reset register (BSRR)** is used to give you atomic control over ODR pins. It's a 32 bit register split into two halves. The the lower half is to set pins 0-15, and the upper half is to reset pins 0-15. The key advantage over the regular ODR pins is atomicity. When you do `ODR ^ PIN5` that performs a read, modify, and a write. If an interrupt fires during this process, it could corrupt the state. With BSRR, the hardware handles it.
+Section 8.4.7. in the Reference Manual describes this register.
+
+<Image
+  src={img6}
+  alt="BSRR"
+  width="850"
+/>
+
+
+There is only a slight change to the previous program:
+```c
+
+#include "stm32f4xx.h"
+
+#define GPIOAEN (1U<<0)
+#define PIN5_SET (1U<<5)
+#define PIN5_RESET (1U<<21) 
+
+int main(void)
+{
+	RCC->AHB1ENR |= GPIOAEN;
+	GPIOA->MODER |= (1U<<10);
+	GPIOA->MODER &= ~(1U<<11);
+
+	while(1)
+	{
+		GPIOA->BSRR = PIN5_SET;
+		for(int i=0; i<100000; i++){};
+		
+		GPIOA->BSRR = PIN5_RESET;
+		for(int i=0; i<100000; i++){};
+	}
+
+}
+
+```
+
+## Using a button as an input
+Found once again in the Reference Sheet, the input register is very simple: 
+
+<Image
+  src={img7}
+  alt="GPIO Input Data Register"
+  width="850"
+/>
+
+Suppose we connect a button to pin 13. Then we can read it's state like so: 
+```c
+#define BTN_PIN (1U<<13)
+
+if (GPIOC->IDR & BTN_PIN)
+```
+
+Our final program now looks like:
+```c
+
+#include "stm32f4xx.h"
+
+#define GPIOAEN (1U<<0)
+#define GPIOCEN (2U<<0)
+#define PIN5_SET (1U<<5)
+#define PIN5_RESET (1U<<21)
+#define BTN_PIN (1U<<13)
+
+  
+int main(void)
+{
+
+// Enable clock access to GPIOs
+RCC->AHB1ENR |= GPIOAEN;
+RCC->AHB1ENR |= GPIOCEN;
+
+// Set PA5 as output pin (LED)
+GPIOA->MODER |= (1U<<10);
+GPIOA->MODER &= ~(1U<<11);
+
+// Set PC13 as input pin (Button)
+GPIOC->MODER &= ~(1U<<26);
+GPIOC->MODER &= ~(1U<<27);
+
+	while(1)
+	{
+		// Check if the button is pressed
+		if (GPIOC->IDR & BTN_PIN)
+		{
+			GPIOA->BSRR = PIN5_SET; // Turn on LED
+		}
+		else
+		{
+			GPIOA->BSRR = PIN5_RESET; // Turn off LED
+		}
 	}
 }
 ```

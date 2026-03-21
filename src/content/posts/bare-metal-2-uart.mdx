@@ -1,5 +1,5 @@
 ---
-title: "Bare Metal STM32 - UART TX"
+title: "Bare Metal STM32 - UART"
 description: ""
 image: "../assets/banners/banner-arrietty-6.jpg"
 createdAt: 03-21-2026
@@ -262,5 +262,126 @@ void uart2_tx_init(void)
 
 ```
 
+
 ## RX Driver
-TODO for the next post.
+The RX driver is very simple. The following is a simple demo of reading from UART and using that data to light an LED (connected to PA5). 
+
+
+```c title="main.c"
+#include <stdio.h>
+
+#include "uart.h"
+
+#define GPIOAEN 		(1U<<0)
+#define GPIOA5 		    (1U<<5)
+#define LED_PIN 		GPIOA5
+
+char key;
+
+int main(void)
+{
+
+	// Enable clock access to GPIOA
+	RCC->AHB1ENR |= GPIOAEN;
+
+	// Set to PA5 as output pin
+	GPIOA->MODER |= (1<<10);
+	GPIOA->MODER &= ~(1<<11);
+
+	uart2_rxtx_init();
+
+	while(1)
+	{
+		key = uart2_read();
+		// turn on LED if we read `1`, turn off if we read '0'
+		(key == '1') ? (GPIOA->ODR |= LED_PIN) : (GPIOA->ODR &= ~LED_PIN); 
+	}
+}
+
+```
+
+
+```c title="uart.c"
+
+#include "uart.h"
+
+#define GPIOAEN 		(1U<<0)
+#define UART2EN 		(1U<<17)
+
+#define BRR_115200_16MHZ 0x8BU
+
+#define CR1_TE			(1U<<3)
+#define CR1_RE          (1U<<2)
+#define CR1_UE			(1U<<13)
+
+#define SR_TXE			(1U<<7)
+#define SR_RXNE         (1U<<5)
+
+// ==================== RX ====================
+char uart2_read(void)
+{
+	// Make sure receive data register is empty
+	while (!(USART2->SR & SR_RXNE)){}
+
+	// Write to receive data register
+	return USART2->DR;
+}
+
+
+void uart2_rxtx_init(void)
+{
+	// ------------ Configure UART GPIO Pins ------------
+	// Enable clock access to GPIOA
+	RCC->AHB1ENR |= GPIOAEN;
+
+	// Set to PA2 mode to alternate function mode (10 - AF mode)
+	GPIOA->MODER |= (1<<5);
+	GPIOA->MODER &= ~(1<<4);
+
+	// Set PA2 Alternate type to UART_RX (AF07) (0111 - AF7)
+	GPIOA->AFR[0] &= ~(1U<<11);
+	GPIOA->AFR[0] |= (1U<<10);
+	GPIOA->AFR[0] |= (1U<<9);
+	GPIOA->AFR[0] |= (1U<<8);
+
+	// Set to PA3 mode to alternate function mode (10 - AF mode)
+	GPIOA->MODER |= (1<<7);
+	GPIOA->MODER &= ~(1<<6);
+
+	// Set PA3 Alternate type to UART_RX (AF07) (0111 - AF7)
+	GPIOA->AFR[0] &= ~(1U<<15);
+	GPIOA->AFR[0] |= (1U<<14);
+	GPIOA->AFR[0] |= (1U<<13);
+	GPIOA->AFR[0] |= (1U<<12);
+
+	// ------------ Configure UART module ------------
+	// Enable clock access to UART2
+	RCC->APB1ENR |= UART2EN;
+
+	// Configure UART baud rate
+	USART2->BRR = BRR_115200_16MHZ;
+
+	// Configure transfer direction (both tx and rx)
+	USART2->CR1 = CR1_TE | CR1_RE;
+
+	// Enable UART module
+	USART2->CR1 |= CR1_UE;
+}
+
+// ==================== TX ====================
+int __io_putchar(int ch)
+{
+	uart2_write(ch);
+	return ch;
+}
+
+void uart2_write(int ch)
+{
+	// Make sure transmit data register is empty
+	while (!(USART2->SR & SR_TXE)){}
+	// Write to transmit data register
+	USART2->DR = (ch & 0xFF);
+}
+
+```
+

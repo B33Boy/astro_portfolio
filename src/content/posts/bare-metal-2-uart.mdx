@@ -1,0 +1,266 @@
+---
+title: "Bare Metal STM32 - UART TX"
+description: ""
+image: "../assets/banners/banner-arrietty-6.jpg"
+createdAt: 03-21-2026
+draft: false
+tags:
+  - c
+  - embedded
+---
+
+import Latex from '../../components/Latex.astro';
+
+## UART Protocol
+UART (Universal Asynchronous Receiver-Transmitter) is a a two-wire protocol for async (i.e. no clock is required) serial communication. Two devices communicate with each of their TX (Transmit) lines connected to the other's RX (Receive). 
+
+![image](https://www.seeedstudio.com/blog/wp-content/uploads/2022/09/uart2.png)
+
+### UART Modes
+![UART Modes](https://microtechtronics.com/wp-content/uploads/UART-Theory-Communication-Methods.gif)
+- Simplex: Data tx/rx in one direction
+- Half Duplex: Data tx/rx in either direction, but takes turns
+- Full Duplex: Data tx/rx in either direction, simultaneously
+
+### Protocol Summary
+-  Start bit: Always `0`
+- Data: 5-9 bits
+- Parity bit: for error checking
+- Stop bit: Either `1` or `11`
+
+> Baud Rate: Connection speed expressed in bits per second (bps)
+
+![Format](https://www.seeedstudio.com/blog/wp-content/uploads/2022/09/uart1.png)
+## TX Driver
+
+### Configure GPIO Pins 
+
+The STM32 datasheet refers UART as USART2 (S being synchronous). In order to use it, the pin must be configured in **Alternate Function** mode. The datasheet has a table that indicates that in order to use `USART2_TX` we must configure`PA2` with `AF07`.
+
+![comp-1774045352063](https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/bare-metal-stm32-uart/comp-1774045352063.png)
+
+
+In the Reference Manual, we know from before that we can set a GPIO pin mode as follows:
+
+![comp-1774045664879](https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/bare-metal-stm32-uart/comp-1774045664879.png)
+
+```c
+#define GPIOAEN (1U<<0)
+
+// Enable clock access to GPIOA
+RCC->AHB1ENR |= GPIOAEN;
+
+// Set to PA2 mode to alternate function mode (10 - AF mode)
+GPIOA->MODER |= (1<<5);
+GPIOA->MODER &= ~(1<<4);
+```
+
+Once we set the PA2 to AF Mode, we should also specify what the alternate function is. In the Reference Manual, there exist two 32 bit registers that help set the values for each pin:
+- AFRL (Alternate Function Register Low): handles pins 0-7
+- AFRH (Alternate Function Register High): handles pins 8-15
+
+We are working with PA2 so we look at AFRL (indicated by `AFR[0]` in the code). AF7 should be set to `0111`.
+
+![comp-1774046037882](https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/bare-metal-stm32-uart/comp-1774046037882.png)
+
+```c
+// Set PA2 Alternate type to UART_TX (AF07) (0111 - AF7)
+GPIOA->AFR[0] &= ~(1U<<11);
+GPIOA->AFR[0] |= (1U<<10);
+GPIOA->AFR[0] |= (1U<<9);
+GPIOA->AFR[0] |= (1U<<8);
+```
+
+
+### Configuring UART module
+Just like how we gave clock access to GPIOA, we must do the same to the UART peripheral. The datasheet shows the block diagram where the USART2 peripheral is connected to the `APB1` bus: 
+
+![comp-1774064861871](https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/bare-metal-stm32-uart/comp-1774064861871.png)
+
+We can then look in the Reference Manual to find the enable register at section 6.3.11. **UART enable is at bit 17**.
+
+![comp-1774065137726](https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/bare-metal-stm32-uart/comp-1774065137726.png)
+
+```c
+#define UART2EN (1U<<17)
+
+// Enable clock access to UART2
+RCC->APB1ENR |= UART2EN;
+```
+
+#### Setting The Baud Rate
+The Baud rate is set by modifying the Baud Rate Register. We need a value called **USARTDIV** that is a floating point value, where the bits are split into the Mantissa and Fraction part.
+
+![comp-1774070349602](https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/bare-metal-stm32-uart/comp-1774070349602.png)
+
+This value is obtained by re-arranging the equation found in section 19.3.4 of the Reference Manual:
+<Latex display formula="\text{Tx/Rx baud} = \frac{f_{CK}}{8\times(2 - \text{OVER8})\times\text{USARTDIV}}"/>
+Where:
+- f<sub>CK</sub> is the peripheral clock source frequency used to generate the baud rate. This is set to `16MHz`.
+- OVER8 is a single bit that defines oversampling amount. Defaults to `0`.
+
+> Note: USART samples each bit multiple times to filter noise. With OVER8=0 (default) it samples 16 times per bit. With OVER8=1, it samples 8 times per bit (which is faster but more noisy).
+
+> **Prescaler**: A hardware divider that scales a clock speed to a slower frequency. USARTDIV is the prescaler, it divides the f<sub>CK</sub> (16M Hz) down to achieve the baud rate (~115,200 Hz). 
+
+Our desired baud rate is 115,200, so doing this calculation will return **USARTDIV =** **8.6875**. We could have also just looked at Table 75 in the Reference Manual. 
+
+![comp-1774072771241](https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/bare-metal-stm32-uart/comp-1774072771241.png)
+
+**HOWEVER** remember USARTDIV is the raw float value, and we must separate it into the Mantissa and Fraction to . We can do this by the formula given:
+<Latex display formula="\text{USARTDIV} = \text{DIV\_MANTISSA} + (\frac{\text{DIV\_FRACTION}}{8\times(2-\text{OVER8})})" />
+<Latex display formula="\text{DIV\_MANTISSA (bits 15:4)} = 8" />
+<Latex display formula="\text{DIV\_FRACTION (bits 3:0) = (8.6875 - 8) * 16 = 11}"/>
+<Latex display formula="\text{So the 16 bit value for the register is } (8<<4) \mid 11 = \text{0x8B = 139}"/>
+
+```c
+#define BRR_115200_16MHZ 0x8BU
+
+// Configure the Baud Rate
+USART2->BRR = BRR_115200_16MHZ;
+```
+
+
+We also need to configure the USART Control Register 1 to:
+- Enable Transmitter (bit 3)
+- Enable USART (bit 13) 
+
+![comp-1774074479652](https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/bare-metal-stm32-uart/comp-1774074479652.png)
+
+```c
+#define CR1_TE (1U<<3)
+#define CR1_UE (1U<<13)
+
+// Configure transfer direction
+USART2->CR1 = CR1_TE;
+
+// Enable UART module
+USART2->CR1 |= CR1_UE;
+```
+
+
+Finally we can override the behaviour of printf to call a custom function for each character. This will first check if the **status register (USART_SR)** indicates that the transmit register is empty before writing to the **data register (USART_DR)**.
+
+![comp-1774074887934](https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/bare-metal-stm32-uart/comp-1774074887934.png)
+
+
+![comp-1774074915042](https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/bare-metal-stm32-uart/comp-1774074915042.png)
+
+```c
+#define SR_TXE (1U<<7)
+
+int __io_putchar(int ch)
+{
+	uart2_write(ch);
+	return ch;
+}  
+
+void uart2_write(int ch)
+{
+	// Make sure transmit data register is empty
+	while (!(USART2->SR & SR_TXE)){}
+	
+	// Write to transmit data register
+	USART2->DR = (ch & 0xFF);
+}
+
+```
+
+
+The final code will look like:
+
+```c title="main.c"
+#include "uart.h"
+
+int main(void)
+{
+	uart2_tx_init();
+	while(1)
+	{
+		printf("The quick brown fox jumps over the lazy dog\n\r");
+	}
+}
+```
+
+```c title="uart.h"
+
+#ifndef UART_H_
+#define UART_H_
+
+#include <stdint.h> // uint32_t
+#include "stm32f4xx.h"
+
+void uart2_tx_init(void);
+
+#endif /* UART_H_ */
+
+```
+
+```c title="uart.c"
+
+#include "uart.h"
+
+#define GPIOAEN 		(1U<<0)
+#define UART2EN 		(1U<<17)
+
+#define BRR_115200_16MHZ 0x8BU
+
+#define CR1_TE			(1U<<3)
+#define CR1_UE			(1U<<13)
+#define SR_TXE			(1U<<7)
+
+
+void uart2_write(int chd);
+
+
+int __io_putchar(int ch)
+{
+	uart2_write(ch);
+	return ch;
+}
+
+
+void uart2_write(int ch)
+{
+	// Make sure transmit data register is empty
+	while (!(USART2->SR & SR_TXE)){}
+
+	// Write to transmit data register
+	USART2->DR = (ch & 0xFF);
+
+}
+
+void uart2_tx_init(void)
+{
+	// ------------ Configure UART GPIO Pins ------------
+	// Enable clock access to GPIOA
+	RCC->AHB1ENR |= GPIOAEN;
+
+	// Set to PA2 mode to alternate function mode (10 - AF mode)
+	GPIOA->MODER |= (1<<5);
+	GPIOA->MODER &= ~(1<<4);
+
+	// Set PA2 Alternate type to UART_TX (AF07) (0111 - AF7)
+	GPIOA->AFR[0] &= ~(1U<<11);
+	GPIOA->AFR[0] |= (1U<<10);
+	GPIOA->AFR[0] |= (1U<<9);
+	GPIOA->AFR[0] |= (1U<<8);
+
+	// ------------ Configure UART module ------------
+	// Enable clock access to UART2
+	RCC->APB1ENR |= UART2EN;
+
+	// Configure UART baud rate
+	USART2->BRR = BRR_115200_16MHZ;
+
+	// Configure transfer direction
+	USART2->CR1 = CR1_TE;
+
+	// Enable UART module
+	USART2->CR1 |= CR1_UE;
+}
+
+```
+
+## RX Driver
+TODO for the next post.

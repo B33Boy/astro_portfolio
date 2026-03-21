@@ -8,9 +8,6 @@ tags:
   - cpp
 ---
 
-import { Image } from "astro:assets";
-import { images } from "../assets/post-images/cppcon-2022-most-important-optimizations/images";
-
 [Video Source](https://youtu.be/qCjEN5XRzHc)
 
 # Performance goals
@@ -247,12 +244,8 @@ This is an excellent decision tree to choose what to take in ??? in:
 call site: `func(x);`
 declaration: `void func(??? x);`
 
-<Image
-  src={images.param_handling}
-  alt="param handling"
-  width="800"
-  height="400"
-/>
+![Param Handling](https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/cppcon-2022-most-important-optimizations/param_handling.png)
+
 
 ### 24. Avoid allocations in loops
 
@@ -327,27 +320,26 @@ Without `std::string get_data() &&` overload, you would bind a reference to a me
 
 ### Virtual memory and paging
 
-<Image
-  src={images.virtual_memory}
-  alt="param handling"
-  width="800"
-  height="400"
-/>
+![Virtual Memory](https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/cppcon-2022-most-important-optimizations/virtual_memory.png)
 
 > The smallest amount of memory guaranteed to be contiguous is a `page (4kb)`. When memory is running low, some pages may be written to persistent storage. The pages that are left in memory are called the **working set**.
 
 > In situations where the requested memory is not in the working set (**page fault**), the page is swapped in. Frequent page faults result in a performance hit (**thrashing**).
 
-<Image src={images.paging} alt="paging" width="800" height="320" />
+![Paging](https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/cppcon-2022-most-important-optimizations/paging.png)
+
 ### 30. Keep working set small Retrieving pages from outside the working set is slower
 because you are fetching from secondary storage. ### Caching
-<Image src={images.caching} alt="param handling" width="800" height="320" />
+
+![Caching](https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/cppcon-2022-most-important-optimizations/caching.png)
 
 > **Prefetching**: When data is requested, the RAM fetches a chunk of contiguous memory (i.e. **cache line**)
 
 > **Caching**: CPU has it's own memory (L1, L2, L3) that stores the most recently used data. If the requested data is found then it's a **cache hit**, otherwise it's a **cache miss** and the CPU has to fetch from RAM.
 
-<Image src={images.caching2} alt="caching" width="950" height="300" />
+![Caching2](https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/cppcon-2022-most-important-optimizations/caching2.png)
+
+
 ### 31. Exploit data locality Try to use more contiguous containers ```cpp // Contiguous
 containers: std::array std::vector std::deque std::flat_map std::flat_set
 
@@ -361,7 +353,7 @@ std::map
 ````
 
 When iterating through multidimensional arrays, prefer row-major order
-<Image src={images.data_locality} alt="param handling" width="800" height="320"/>
+![Locality](https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/cppcon-2022-most-important-optimizations/data_locality.png)
 
 Re-order members of a class/struct to be better packed. With less padding,  we would have more useful data per cache line.
 

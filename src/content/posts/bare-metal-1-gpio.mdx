@@ -9,14 +9,6 @@ tags:
   - embedded
 ---
 
-import { Image } from "astro:assets";
-import img1 from "../assets/post-images/bare-metal-1-gpio/img1.png";
-import img2 from "../assets/post-images/bare-metal-1-gpio/img2.png";
-import img3 from "../assets/post-images/bare-metal-1-gpio/img3.png";
-import img4 from "../assets/post-images/bare-metal-1-gpio/img4.png";
-import img5 from "../assets/post-images/bare-metal-1-gpio/img5.png";
-import img6 from "../assets/post-images/bare-metal-1-gpio/img6.png";
-import img7 from "../assets/post-images/bare-metal-1-gpio/img7.png";
 
 Peeling back the layers of abstraction, we have bare-metal programming for microcontrollers. One thing I think many students don't learn during university is how to actually use official documentation (e.g. datasheets). So I wanted to create a short guide on how I go about performing common tasks using bare-metal programming on the STM32F411. I'll be using STM32CubeIDE, but feel free to use any IDE you like.
 ## Setup
@@ -44,27 +36,16 @@ The User Manual tells us that the green user LED (LD2) is connected to **PA5** (
 
 Before we can control any peripheral, we need to enable its clock. Section **5.3.2** of the Reference Manual explains that peripheral clocks are gated off by default to save power, so we need to explicitly turn them on.
 
-<Image
-  src={img2}
-  alt="Peripheral Clock Gating"
-  width="850"
-/>
+![Peripheral Clock Gating](https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/bare-metal-1-gpio/img2.png)
 
 Next, we need to figure out which clock register to use: `RCC_AHB1ENR` or `RCC_AHB2ENR`. Looking at **Figure 3 (STM32F411xC/xE block diagram)** in the Datasheet, we can see that GPIO Port A sits on the **AHB1 bus** (Advanced High-performance Bus), so we'll be using `RCC_AHB1ENR`.
 
-<Image
-  src={img1}
-  alt="Block Diagram"
-  width="850"
-/>
+![Block Diagram](https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/bare-metal-1-gpio/img1.png)
+
 
 The Reference Manual covers this register in section **7.3.10 - RCC AHB1 peripheral clock enable register (RCC_AHB1ENR)**. To enable the clock for Port A, we set **bit 0** to 1:
 
-<Image
-  src={img3}
-  alt="Clock Enable Register"
-  width="850"
-/>
+![Clock Enable Register](https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/bare-metal-1-gpio/img3.png)
 
 ```c
 #define GPIOAEN (1U<<0)
@@ -78,11 +59,8 @@ GPIO ports have at least two registers: a **direction register** and a **data re
 
 Section **8.4.1 - GPIO Port Mode Register (GPIOx_MODER)** in the Reference Manual is what we want. Each pin gets a 2-bit field, and the formula for finding pin `y`'s bits is `2y` and `2y+1`. For pin 5, that's bits **10 and 11**. The encoding for general-purpose output is `01`, so right to left, bit 10 = 1 and bit 11 = 0:
 
-<Image
-  src={img4}
-  alt="Port Mode Register"
-  width="850"
-/>
+
+![Port Mode Register](https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/bare-metal-1-gpio/img4.png)
 
 ```c
 	GPIOA->MODER |= (1U<<10);
@@ -91,11 +69,8 @@ Section **8.4.1 - GPIO Port Mode Register (GPIOx_MODER)** in the Reference Manua
 
 ### Toggling LED
 Now that pin direction is set, we write to the data register. Section **8.4.6 - GPIO Port Output Data Register (GPIOx_ODR)** in the Reference Manual covers this. We can toggle pin 5 by XOR-ing its bit on every iteration:
-<Image
-  src={img5}
-  alt="Port Output Data Register"
-  width="850"
-/>
+
+![Port Output Data Register](https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/bare-metal-1-gpio/img5.png)
 
 
 We can toggle Pin5 by inverting the bit every time:
@@ -135,11 +110,7 @@ int main(void)
 The **bit set/reset register (BSRR)** is used to give you atomic control over ODR pins. It's a 32 bit register split into two halves. The the lower half is to set pins 0-15, and the upper half is to reset pins 0-15. The key advantage over the regular ODR pins is atomicity. When you do `ODR ^ PIN5` that performs a read, modify, and a write. If an interrupt fires during this process, it could corrupt the state. With BSRR, the hardware handles it.
 Section 8.4.7. in the Reference Manual describes this register.
 
-<Image
-  src={img6}
-  alt="BSRR"
-  width="850"
-/>
+![BSRR](https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/bare-metal-1-gpio/img6.png)
 
 
 There is only a slight change to the previous program:
@@ -173,11 +144,7 @@ int main(void)
 ## Using a button as an input
 Found once again in the Reference Sheet, the input register is very simple: 
 
-<Image
-  src={img7}
-  alt="GPIO Input Data Register"
-  width="850"
-/>
+![GPIO Input Data Register](https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/bare-metal-1-gpio/img7.png)
 
 Suppose we connect a button to pin 13. Then we can read it's state like so: 
 ```c

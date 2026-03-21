@@ -196,6 +196,7 @@ void uart2_tx_init(void);
 
 ```
 
+
 ```c title="uart.c"
 
 #include "uart.h"
@@ -297,6 +298,20 @@ int main(void)
 		(key == '1') ? (GPIOA->ODR |= LED_PIN) : (GPIOA->ODR &= ~LED_PIN); 
 	}
 }
+
+```
+
+```c title="uart.h"
+
+#ifndef UART_H_
+#define UART_H_
+
+#include <stdint.h> // uint32_t
+#include "stm32f4xx.h"
+
+void uart2_tx_init(void);
+
+#endif /* UART_H_ */
 
 ```
 

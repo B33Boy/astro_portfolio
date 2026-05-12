@@ -23,7 +23,7 @@
   },
   {
     "id": 3,
-    "duration": "May 2022 - May 2024",
+    "duration": "May 2022 - Feb 2024",
     "company": "MDA Space",
     "title": "Software Developer - Canadarm3",
     "description": [
@@ -33,6 +33,16 @@
       "Created Python automation scripts for document generation and test verification, saving hours of manual work per release and improving consistency across test cycles.",
       "Leveraged Builder and Factory design patterns to modularize message transmission, data mapping, and client request handling systems, reducing future module development time by 50% and enhancing code maintainability.",
       "Built a React interface for creating and dispatching flight commands (e.g. lock, limp, move-joints), streamlining command workflows and improving operator efficiency in mission-critical environments."
+    ]
+  },
+  {
+    "id": 4,
+    "duration": "Feb 2024 - May 2024",
+    "company": "Kepler Communications",
+    "title": "Software Developer - Satellite Constellation Management",
+    "description": [
+      "Wrote Python scripts for satellite management software, automating satellite operations and task scheduling during orbital passes.",
+      "Managed Kubernetes clusters for each satellite, ensuring reliable ingestion, processing, and routing of satellite messages."
     ]
   }
 ]

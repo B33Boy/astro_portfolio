@@ -44,5 +44,27 @@
       "Wrote Python scripts for satellite management software, automating satellite operations and task scheduling during orbital passes.",
       "Managed Kubernetes clusters for each satellite, ensuring reliable ingestion, processing, and routing of satellite messages."
     ]
+  },
+  {
+    "id": 5,
+    "duration": "May 2024 - Present",
+    "company": "Independent",
+    "title": "Developer",
+    "description": [
+      "Writing 3D simulations in C++ to implement autonomous navigation, state estimation, and sensor fusion.",
+      "Contributed to open-source repositories.",
+      "Authored technical articles on design patterns, embedded systems, and advanced C++ concepts (e.g. type-erasure, optimizations)."
+    ]
+  },
+  {
+    "id": 6,
+    "duration": "May 2026 - Present",
+    "company": "Newslight",
+    "title": "Software Developer",
+    "description": [
+      "Designed an event extraction LLM pipeline (Gemini 3.5) with confidence scoring, achieving 98% accuracy on classification.",
+      "Shipped auto-save, pagination, and editorial workflow features for an article pipeline, saving the team hours of weekly review time.",
+      "Automated stale article cleanup via DB migration and CI extension, purging 9,000+ records and eliminating ongoing DB bloat."
+    ]
   }
 ]

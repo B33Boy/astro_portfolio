@@ -2,6 +2,7 @@
 import '../styles/article-list.css';
 
 import { getCollection } from "astro:content";
+import Image from "astro/components/Image.astro";
 import Card from "../components/Card.astro";
 import Icon from "../components/Icon.astro";
 import Layout from "../layouts/Layout.astro";
@@ -41,30 +42,40 @@ const tags = posts.flatMap((post) => post.data.tags.map((tag) => tag.id));
     </Card>
   </div>
   <div class="layout-grid-right" slot="right">
-		<Card>
-			<div class="header-container">
-				<Icon type="lucide" name="rss" width={24} height={24} class='glow-icon' />
-				<h2>Latest Posts</h2>
-			</div>
-			<div class="content-container">
-				{posts.sort((a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime()).map((post) => (
-					<a href={`/blog/${post.id}`} class="post-container" data-tags={post.data.tags.map((tag) => tag.id).join(",")}>
-						<div class="post-header">
-							<h3>{post.data.title}</h3>
+		<div class="posts-grid">
+			{posts.sort((a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime()).map((post) => (
+				<a href={`/blog/${post.id}`} class="post-card" data-tags={post.data.tags.map((tag) => tag.id).join(",")}>
+					<div class="post-image-wrapper">
+						<Image
+							src={post.data.gridImage || post.data.image}
+							alt={post.data.title}
+							width={400}
+							height={300}
+							class="post-image"
+						/>
+					</div>
+					<div class="post-content">
+						<h3>{post.data.title}</h3>
+						<p class="post-description">{post.data.description}</p>
+						<div class="post-meta">
 							<span class="post-date">{post.data.createdAt.toLocaleDateString()}</span>
+							<span class="post-tags">
+								{post.data.tags.map((tag) => (
+									<span class="tag-badge">{tag.id}</span>
+								))}
+							</span>
 						</div>
-						<span>{post.data.description}</span>
-					</a>
-				))}
-			</div>
-		</Card>
+					</div>
+				</a>
+			))}
+		</div>
   </div>
 </Layout>
 <script>
   const tags = document.querySelectorAll<HTMLAnchorElement>('.blog-tag');
   const url = new URL(window.location.href);
   const currentTags = url.searchParams.get('tags')?.split(',').filter((tag) => tag.length > 0);
-  const posts = document.querySelectorAll<HTMLAnchorElement>('.post-container');
+  const posts = document.querySelectorAll<HTMLAnchorElement>('.post-card');
 
   tags.forEach((tag) => {
     let active = false;
@@ -87,3 +98,103 @@ const tags = posts.flatMap((post) => post.data.tags.map((tag) => tag.id));
     }
   });
 </script>
+
+<style>
+	.posts-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+		gap: 1.5rem;
+	}
+
+	.post-card {
+		display: flex;
+		flex-direction: column;
+		border: 1px solid #353535;
+		border-radius: 8px;
+		overflow: hidden;
+		text-decoration: none;
+		color: inherit;
+		transition: all 0.3s ease;
+		background-color: rgba(0, 0, 0, 0.2);
+	}
+
+	.post-card:hover {
+		border-color: var(--primary, #8c5cf5);
+		background-color: rgba(140, 92, 245, 0.1);
+		transform: translateY(-4px);
+		box-shadow: 0 8px 16px rgba(140, 92, 245, 0.2);
+	}
+
+	.post-image-wrapper {
+		width: 100%;
+		height: 200px;
+		overflow: hidden;
+		background-color: #1a1a1a;
+	}
+
+	.post-image {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		transition: transform 0.3s ease;
+	}
+
+	.post-card:hover .post-image {
+		transform: scale(1.05);
+	}
+
+	.post-content {
+		padding: 1.25rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		flex-grow: 1;
+	}
+
+	.post-content h3 {
+		margin: 0;
+		font-size: 1.25rem;
+	}
+
+	.post-description {
+		margin: 0;
+		color: #c7c7c7;
+		font-size: 0.95rem;
+		line-height: 1.5;
+		flex-grow: 1;
+	}
+
+	.post-meta {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		margin-top: auto;
+	}
+
+	.post-date {
+		font-size: 0.85rem;
+		color: #8b8b8b;
+	}
+
+	.post-tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
+	.tag-badge {
+		display: inline-block;
+		padding: 0.25rem 0.75rem;
+		background-color: rgba(140, 92, 245, 0.2);
+		border: 1px solid rgba(140, 92, 245, 0.4);
+		border-radius: 12px;
+		font-size: 0.75rem;
+		color: #c7c7c7;
+	}
+
+	@media (max-width: 768px) {
+		.posts-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

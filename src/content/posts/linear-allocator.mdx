@@ -1,0 +1,84 @@
+---
+title: "Linear Allocator in C++ For Predictable Performance"
+description: ""
+image: "../assets/banners/banner-mononoke-2.jpg"
+createdAt: 11-30-2025
+draft: false
+tags:
+  - cpp
+---
+
+
+Dynamic memory allocoation is a quiet performance killer for various systems. Frequent allocations, and cache misses add up, especially in games. 
+
+While reading [C++ High Performance by Bjorn Andrist and Viktor Sehr](https://www.oreilly.com/library/view/c-high-performance/9781839216541/), the allocator section had some insightful knowledge on allocation patterns.
+
+In this post, I'll walk through how I build a *linear (arena) allocator* in C++ and how I made it compatible with the STL.
+
+
+## Why a Linear Allocator? 
+There are a few benefits with this, we can allocate a large block of memory and hand out chunks linearly as required without ever having to free individual allocations. 
+These are used in cases where allocation speed matters more than flexibility, such as loading levels in a video game.
+
+## The Arena
+The foundation is the LinearArena which owns a contiguous block of memory and tracks how much has been used.
+Below, 
+
+
+```cpp title="arena.hpp"
+
+#pragma once
+
+#include <cstdlib> // size_t
+#include <iostream>
+#include <memory>
+
+class LinearArena
+{
+public:
+    constexpr LinearArena(size_t size) : start_ptr_(nullptr), capacity_(size), offset_(0)
+    {
+        start_ptr_ = ::operator new(size);
+        std::cout << "(Arena) Allocated " << size << " bytes\n";
+    }
+
+    ~LinearArena()
+    {
+        ::operator delete(start_ptr_);
+    }
+
+    // Disable copy construction and copy assignment
+    LinearArena(LinearArena const& other) = delete;
+    LinearArena& operator=(LinearArena const& other) = delete;
+
+    // Allow move construction and move assignment
+    constexpr LinearArena(LinearArena&& other) noexcept = default;
+    LinearArena& operator=(LinearArena&& other) noexcept = default;
+
+    [[nodiscard]] constexpr void* allocate(size_t const req_size, size_t const req_alignment)
+    {
+        size_t remaining_space = capacity_ - offset_;
+        void* new_start = static_cast<char*>(start_ptr_) + offset_;
+        void* old_start = new_start;
+
+        if ( std::align(req_alignment, req_size, new_start, remaining_space) )
+        {
+            size_t padding = static_cast<char*>(new_start) - static_cast<char*>(old_start);
+
+            offset_ += req_size + padding;
+            std::cout << "(Arena) Allocating " << req_size << " bytes (Used: " << offset_ << "/" << capacity_ << ")\n";
+
+            return new_start;
+        }
+        return nullptr;
+    }
+
+private:
+    void* start_ptr_;
+    size_t capacity_;
+    size_t offset_;
+};
+```
+
+Let's break it down. 
+

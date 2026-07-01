@@ -77,6 +77,7 @@ const posts = defineCollection({
     ),
     draft: z.boolean().optional().default(false),
     image: image(),
+    gridImage: image().optional(),
   })
 });
 
@@ -87,6 +88,7 @@ const projects = defineCollection({
     description: z.string(),
     date: z.coerce.date(),
     image: image(),
+    gridImage: image().optional(),
     link: z.string().url().optional(),
     info: z.array(
       z.object({

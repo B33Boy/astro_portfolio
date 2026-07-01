@@ -13,11 +13,12 @@ import { getEntry } from 'astro:content';
 import { render } from 'astro:content';
 import { name, openGraph } from 'spectre:globals';
 
-const [posts, projects, about, workExperience, quickInfo, socials] = await Promise.all([
+const [posts, projects, about, workExperience, education, quickInfo, socials] = await Promise.all([
 	getCollection('posts', (post) => post.data.draft !== true),
 	getCollection('projects'),
 	getEntry('other', 'about'),
 	getCollection('workExperience'),
+	getCollection('education'),
 	getCollection('quickInfo'),
 	getCollection('socials')
 ]);
@@ -86,7 +87,31 @@ const { Content: About } = await render(about!);
 							<h3 class="work-experience-company">{entry.data.company}</h3>
 							<span class="work-experience-role">{entry.data.title}</span>
 						</summary>
-						
+
+						<ul class="work-experience-desc">
+							{entry.data.description.map((point) => (
+							<li>{point}</li>
+							))}
+						</ul>
+					</details>
+				))}
+			</div>
+		</Card>
+
+		<Card>
+			<div class="header-container">
+				<Icon type='lucide' name="book-open" width={24} height={24} class='glow-icon' />
+				<h1>Education</h1>
+			</div>
+			<div class="work-experience-container">
+				{education.slice().reverse().map((entry) => (
+					<details class="work-experience-entry">
+					    <summary class="work-experience-header">
+							<span class="work-experience-duration">{entry.data.duration}</span>
+							<h3 class="work-experience-company">{entry.data.school}</h3>
+							<span class="work-experience-role">{entry.data.degree}</span>
+						</summary>
+
 						<ul class="work-experience-desc">
 							{entry.data.description.map((point) => (
 							<li>{point}</li>

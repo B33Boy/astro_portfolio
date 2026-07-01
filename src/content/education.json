@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "school": "Ontario Tech University",
+    "degree": "Mechatronics Engineering",
+    "duration": "Sept 2017 - May 2022",
+    "description": [
+      "President's list with highest distinction; GPA 4.0/4.3"
+    ]
+  },
+  {
+    "id": 2,
+    "school": "Georgia Tech",
+    "degree": "Master of Science in Computer Science (OMSCS)",
+    "duration": "August 2026 - Present",
+    "description": [
+      "Specializing in Computational Perception & Robotics."
+    ]
+  }
+]

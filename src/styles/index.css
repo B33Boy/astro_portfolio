@@ -59,12 +59,12 @@
 .work-experience-container {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 .work-experience-entry:not(:last-of-type) {
   border-bottom: 1px solid #353535;
-  padding-bottom: 1rem;
+  padding-bottom: 0.5rem;
 }
 
 .work-experience-duration {
@@ -72,12 +72,12 @@
 }
 
 .work-experience-company {
-  margin-top: .25rem;
-  margin-bottom: .5rem;
+  margin-top: 0;
+  margin-bottom: 0.25rem;
 }
 
 .work-experience-role {
-  margin-bottom: .75rem;
+  margin-bottom: 0.25rem;
 }
 
 .work-experience-entry summary::-webkit-details-marker {

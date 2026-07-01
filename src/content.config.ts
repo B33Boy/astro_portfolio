@@ -47,6 +47,17 @@ const workExperience = defineCollection({
   })
 });
 
+const education = defineCollection({
+  loader: file("src/content/education.json"),
+  schema: z.object({
+    id: z.number(),
+    school: z.string(),
+    degree: z.string(),
+    duration: z.string(),
+    description: z.array(z.string()),
+  })
+});
+
 const tags = defineCollection({
   loader: file("src/content/tags.json"),
   schema: z.object({
@@ -87,4 +98,4 @@ const projects = defineCollection({
   })
 });
 
-export const collections = { tags, posts, projects, other, quickInfo, socials, workExperience };
+export const collections = { tags, posts, projects, other, quickInfo, socials, workExperience, education };

@@ -43,16 +43,27 @@ const tags = posts.flatMap((post) => post.data.tags.map((tag) => tag.id));
   </div>
   <div class="layout-grid-right" slot="right">
 		<div class="posts-grid">
-			{posts.sort((a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime()).map((post) => (
+			{posts.sort((a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime()).map((post) => {
+				const imageSrc = post.data.gridImage || post.data.image;
+				const isExternal = typeof imageSrc === 'string' && imageSrc.startsWith('http');
+				return (
 				<a href={`/blog/${post.id}`} class="post-card" data-tags={post.data.tags.map((tag) => tag.id).join(",")}>
 					<div class="post-image-wrapper">
-						<Image
-							src={post.data.gridImage || post.data.image}
-							alt={post.data.title}
-							width={400}
-							height={300}
-							class="post-image"
-						/>
+						{isExternal ? (
+							<img
+								src={imageSrc}
+								alt={post.data.title}
+								class="post-image"
+							/>
+						) : (
+							<Image
+								src={imageSrc}
+								alt={post.data.title}
+								width={400}
+								height={300}
+								class="post-image"
+							/>
+						)}
 					</div>
 					<div class="post-content">
 						<h3>{post.data.title}</h3>
@@ -67,7 +78,8 @@ const tags = posts.flatMap((post) => post.data.tags.map((tag) => tag.id));
 						</div>
 					</div>
 				</a>
-			))}
+			);
+			})}
 		</div>
   </div>
 </Layout>

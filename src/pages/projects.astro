@@ -30,16 +30,27 @@ const projects = await getCollection("projects");
   </div>
   <div class="layout-grid-right" slot="right">
 		<div class="projects-grid">
-			{projects.sort((a, b) => b.data.date.getTime() - a.data.date.getTime()).map((project) => (
+			{projects.sort((a, b) => b.data.date.getTime() - a.data.date.getTime()).map((project) => {
+				const imageSrc = project.data.gridImage || project.data.image;
+				const isExternal = typeof imageSrc === 'string' && imageSrc.startsWith('http');
+				return (
 				<a href={`/projects/${project.id}`} class="project-card">
 					<div class="project-image-wrapper">
-						<Image
-							src={project.data.gridImage || project.data.image}
-							alt={project.data.title}
-							width={400}
-							height={300}
-							class="project-image"
-						/>
+						{isExternal ? (
+							<img
+								src={imageSrc}
+								alt={project.data.title}
+								class="project-image"
+							/>
+						) : (
+							<Image
+								src={imageSrc}
+								alt={project.data.title}
+								width={400}
+								height={300}
+								class="project-image"
+							/>
+						)}
 					</div>
 					<div class="project-content">
 						<h3>{project.data.title}</h3>
@@ -47,7 +58,8 @@ const projects = await getCollection("projects");
 						<span class="project-date">{project.data.date.toLocaleDateString()}</span>
 					</div>
 				</a>
-			))}
+			);
+			})}
 		</div>
   </div>
 </Layout>

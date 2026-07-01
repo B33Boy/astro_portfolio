@@ -7,6 +7,7 @@ import Card from '../components/Card.astro';
 import Layout from '../layouts/Layout.astro';
 import ImageGlow from '../components/ImageGlow.astro';
 import Icon from '../components/Icon.astro';
+import GitHubHeatmap from '../components/GitHubHeatmap.astro';
 import { getCollection } from 'astro:content';
 import { getEntry } from 'astro:content';
 import { render } from 'astro:content';
@@ -102,13 +103,7 @@ const { Content: About } = await render(about!);
 				<h1>Stats</h1>
 			</div>
 
-			<div class="graph-wrapper">
-			<img
-				src="https://github-readme-activity-graph.vercel.app/graph?username=B33Boy&theme=high-contrast&days=60"
-				alt="GitHub activity graph"
-				loading="lazy"
-			/>
-			</div>
+			<GitHubHeatmap username="B33Boy" />
 			<div class="graph-wrapper">
 			<img
 				src="https://leetcard.jacoblin.cool/B33boy?theme=radical&font=Prompt&colors=%231e1e2e%2C%2345475a%2C%23cdd6f4%2C%23bac2de%2C%23fab387%2C%238c5cf5%2C%23f9e2af%2C%23f38ba8&ext=heatmap"

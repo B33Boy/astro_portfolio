@@ -16,5 +16,32 @@
     },
     "text": "",
     "link": "https://www.linkedin.com/in/abhi-patel-0/"
+  },
+  {
+    "id": 3,
+    "icon": {
+      "type": "simple-icons",
+      "name": "leetcode"
+    },
+    "text": "",
+    "link": "https://leetcode.com/u/B33Boy/"
+  },
+  {
+    "id": 4,
+    "icon": {
+      "type": "lucide",
+      "name": "mail"
+    },
+    "text": "",
+    "link": "mailto:abhip202@gmail.com"
+  },
+  {
+    "id": 5,
+    "icon": {
+      "type": "lucide",
+      "name": "file-text"
+    },
+    "text": "",
+    "link": "https://flowcv.com/resume/p6bel1lwss"
   }
 ]

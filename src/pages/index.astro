@@ -39,7 +39,7 @@ const { Content: About } = await render(about!);
 			</div>
 		</Card>
 		<Card>
-			<h3 class="no-mt">Socials</h3>
+			<h3 class="no-mt">Links</h3>
 			<ul class="overview-list">
 				{socials.map((item) => (
 					<li>
@@ -61,12 +61,27 @@ const { Content: About } = await render(about!);
 			</div>
 		</Card>
 
+		<Card>
+			<div class="header-container">
+				<Icon type='lucide' name="user" width={24} height={24} class='glow-icon' />
+				<h1>Stats</h1>
+			</div>
+
+			<GitHubHeatmap username="B33Boy" />
+			<div class="graph-wrapper">
+			<img
+				src="https://leetcard.jacoblin.cool/B33boy?theme=radical&font=Prompt&colors=%231e1e2e%2C%2345475a%2C%23cdd6f4%2C%23bac2de%2C%23fab387%2C%238c5cf5%2C%23f9e2af%2C%23f38ba8&ext=heatmap"
+				alt="LeetCode Stats"
+				loading="lazy"
+				/>
+			</div>
+		</Card>
 
 		<!-- <Card class="flex-col-card">
 			<div>
 				<h1>Skills</h1>
 				<div class="prose">
-					
+
 				</div>
 			</div>
 		</Card> -->
@@ -119,22 +134,6 @@ const { Content: About } = await render(about!);
 						</ul>
 					</details>
 				))}
-			</div>
-		</Card>
-
-		<Card>
-			<div class="header-container">
-				<Icon type='lucide' name="user" width={24} height={24} class='glow-icon' />
-				<h1>Stats</h1>
-			</div>
-
-			<GitHubHeatmap username="B33Boy" />
-			<div class="graph-wrapper">
-			<img
-				src="https://leetcard.jacoblin.cool/B33boy?theme=radical&font=Prompt&colors=%231e1e2e%2C%2345475a%2C%23cdd6f4%2C%23bac2de%2C%23fab387%2C%238c5cf5%2C%23f9e2af%2C%23f38ba8&ext=heatmap"
-				alt="LeetCode Stats"
-				loading="lazy"
-				/>
 			</div>
 		</Card>
 

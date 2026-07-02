@@ -1,0 +1,118 @@
+---
+title: "Duck++ - The Duck That Quacks Back - Part 1"
+description: ""
+image: "../assets/banners/banner-porco-rosso-4.jpg"
+gridImage: "https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/gridImages/duck%2B%2B_card.png"
+createdAt: 07-01-2026
+draft: false
+tags:
+  - hardware
+  - embedded
+---
+
+## Introduction
+Duck++ is a programmable desk-side companion inspired by the rubber duck that developers use, except this one actually talks back. 
+This series of blog posts will document the development process I've been going through to get this prototype up and running.
+
+I want to explore the following use-cases for this prototype:
+- Oration mode - Helps you practise public speaking by measuring filler words (e.g. "umm" or "like"), speaking volume, and overall diction throughout the speech; visualize and suggest areas of improvement.
+- Desktop mode - Virtual desktop buddy that appears as a cartoon figure, you can interact with it in various ways (monitor a task and report back when complete)
+- Coding mode - helps you reason through problems as you are programming. 
+- Note taking mode - Captures your voice to take notes, conditions them (clean up, adds enrichment images, diagrams, etc) and integrates them into obsidian
+- Macropad - Quick easy programmable shortcuts  
+
+### Requirements
+The device should:
+- listen to a person's voice and respond back
+- have programmable buttons for various tasks
+- display information via an OLED display
+- sense when it is picked up and set down 
+- is powered from an external battery for portability
+- can be programmed/charged/powered via USB-C
+
+
+## Technical Design
+
+### Architecture
+
+High Level Block Diagram
+
+![Block Diagram](https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/duck%2B%2B/schematics/Duck%2B%2B%20Block%20Diagram.png)
+
+
+### Hardware Design
+
+> Parts List
+> - ESP32-S3 - has enough RAM for FreeRTOS + audio buffers
+> - ICS-43434 mic + MAX98357A amp (the whole reason this is a rubber duck)
+> - SSD1306 OLED (volume, battery %, state feedback)
+> - BQ24074 + LiPo + USB-C
+> - 2 buttons for boot/reset
+> - 4 general purpose buttons
+> - LIS2DW12 Accelerometer
+> - RGB LED or a couple discrete LEDs for state indication
+> - I'll also expose the rest of the free pins on the ESP32 through socket headers for future random bullshit purposes
+
+### Schematic Design
+Duck++ V1.0
+
+![schematic](https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/duck%2B%2B/schematics/duck%2B%2B_schematic_v1.0.svg)
+
+
+#### USB-C
+![USB-C Schematic](https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/duck%2B%2B/schematics/duck%2B%2B_schematic_1_usb_c.png)
+
+
+#### BQ24074 Charger
+![Charger Schematic](https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/duck%2B%2B/schematics/duck%2B%2B_schematic_2_charger.png)
+
+#### SGM2212-3.3 Linear Regulator
+![LDO Schematic](https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/duck%2B%2B/schematics/duck%2B%2B_schematic_3_ldo.png)
+
+
+#### LIS2DW12 Accelerometer
+![Accelerometer Schematic](https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/duck%2B%2B/schematics/duck%2B%2B_schematic_4_imu.png)
+
+#### SSD1306 OLED
+![OLED Schematic](https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/duck%2B%2B/schematics/duck%2B%2B_schematic_5_oled.png)
+
+
+#### Buttons
+![Buttons Schematic](https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/duck%2B%2B/schematics/duck%2B%2B_schematic_6_btns.png)
+
+#### LEDs
+![LED Schematic](https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/duck%2B%2B/schematics/duck%2B%2B_schematic_7_leds.png)
+
+#### MAX98357A Amplifier
+![Amp Schematic](https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/duck%2B%2B/schematics/duck%2B%2B_schematic_8_amp.png)
+
+
+#### ICS-43434 Mics
+![Mics Schematic](https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/duck%2B%2B/schematics/duck%2B%2B_schematic_9_mics.png)
+
+#### ESP32-S3 Connections
+![ESP32-S3](https://pub-8ee4be8162b94ae2a6144444548b75bb.r2.dev/duck%2B%2B/schematics/duck%2B%2B_schematic_10_esp32.png)
+
+
+
+## What's Next
+Stay tuned for part 2, the pcb design.
+
+
+## References
+
+[ESP32-S3-WROOM-1 Datasheet](https://documentation.espressif.com/esp32-s3-wroom-1_wroom-1u_datasheet_en.pdf)
+
+[USB-C Datasheet](https://www.lcsc.com/datasheet/C165948.pdf?spm=wm.sxq.inf.ggs&lcsc_vid=Q1EMBV0DE1BWBFFXQgQNUVQATwMNUVZWEQRdA1IHEVQxVlNeRVhZU1VST1ReXzsOAxUeFF5JWBYZEEoBGA4JCwFIFA4DSA%3D%3D)
+
+[BQ24074 Datasheet](https://www.ti.com/cn/lit/ds/symlink/bq24074.pdf?ts=1782895006845&ref_url=https%253A%252F%252Fpro.lceda.cn%252F)
+
+[SGM2212-3.3 Datasheet](https://www.sg-micro.com/rect/assets/54089b71-cc25-4f36-af2e-34b07f00a108/SGM2212.pdf)
+
+[LIS2DW12 Datasheet](https://atta.szlcsc.com/upload/public/pdf/source/20180403/C189624_150963097ED842400E055DE40577DCB1.pdf)
+
+[SSD1306 Datasheet](https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf)
+
+[MAX98357A Datasheet](https://www.analog.com/media/en/technical-documentation/data-sheets/MAX98357A-MAX98357B.pdf)
+
+[ICS-43434 Datasheet](https://cdn-shop.adafruit.com/product-files/6049/6049_DS-000069-ICS-43434-v1.2.pdf)
